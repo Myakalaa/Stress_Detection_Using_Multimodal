@@ -1,0 +1,863 @@
+{% extends 'users/Userbase.html' %}
+{% block title %}Model Training — StressWise{% endblock %}
+{% block nav_training %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ══════════════════════════════════════
+   PAGE LAYOUT
+══════════════════════════════════════ */
+.train-page {
+    padding: 2.2rem 2rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ── Page header ── */
+.page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--light-grey);
+}
+.page-header-left h1 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    color: var(--charcoal);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+.page-header-left p {
+    font-size: 0.82rem;
+    color: var(--mid-grey);
+}
+.page-header-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--sage-light);
+    border: 1px solid rgba(107,143,113,0.25);
+    color: var(--sage-dark);
+    font-size: 0.72rem; font-weight: 600;
+    padding: 0.3rem 0.75rem; border-radius: 100px;
+    margin-top: 0.55rem;
+}
+
+/* ══════════════════════════════════════
+   MODE SELECTOR CARDS
+══════════════════════════════════════ */
+.mode-cards {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-bottom: 1.6rem;
+}
+.mode-card {
+    position: relative; cursor: pointer;
+    background: #fff;
+    border: 2px solid var(--light-grey);
+    border-radius: 14px;
+    padding: 1.3rem 1.4rem;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    overflow: hidden;
+}
+.mode-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--light-grey);
+    transition: background 0.18s;
+}
+.mode-card:hover {
+    border-color: rgba(107,143,113,0.4);
+    box-shadow: 0 4px 18px rgba(107,143,113,0.1);
+}
+.mode-card.selected {
+    border-color: var(--sage);
+    box-shadow: 0 4px 20px rgba(107,143,113,0.15);
+}
+.mode-card.selected::before { background: var(--sage); }
+
+.mode-card input[type="radio"] {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.mode-card-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 0.5rem;
+}
+.mode-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.mode-icon.fast  { background: var(--sage-light); color: var(--sage-dark); }
+.mode-icon.slow  { background: var(--accent-soft); color: var(--accent); }
+
+.mode-card h3 {
+    font-size: 0.92rem; font-weight: 600;
+    color: var(--charcoal); margin: 0;
+}
+.mode-card p {
+    font-size: 0.78rem; color: var(--mid-grey); line-height: 1.55;
+    margin: 0;
+}
+.mode-card-check {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--light-grey);
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.16s;
+}
+.mode-card.selected .mode-card-check {
+    border-color: var(--sage);
+    background: var(--sage);
+    color: #fff;
+}
+.mode-card-check i { font-size: 0.6rem; display: none; }
+.mode-card.selected .mode-card-check i { display: block; }
+
+/* ══════════════════════════════════════
+   ADVANCED OPTIONS (retrain only)
+══════════════════════════════════════ */
+.adv-panel {
+    background: #fff;
+    border: 1px solid var(--light-grey);
+    border-radius: 14px;
+    padding: 1.3rem 1.4rem;
+    margin-bottom: 1.6rem;
+    display: none;
+}
+.adv-panel.visible { display: block; }
+
+.adv-panel-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 1.1rem;
+}
+.adv-panel-header h4 {
+    font-size: 0.88rem; font-weight: 600;
+    color: var(--charcoal); margin: 0;
+}
+.adv-panel-header span {
+    font-size: 0.7rem; color: var(--mid-grey);
+    background: var(--cream); border: 1px solid var(--light-grey);
+    border-radius: 6px; padding: 1px 8px;
+}
+
+.adv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+.field-group label {
+    display: block;
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--mid-grey); letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+}
+.field-group input {
+    width: 100%;
+    padding: 0.52rem 0.8rem;
+    border: 1.5px solid var(--light-grey);
+    border-radius: 9px;
+    background: var(--cream);
+    font-size: 0.85rem; font-family: var(--font-body);
+    color: var(--charcoal);
+    transition: border-color 0.15s;
+}
+.field-group input:focus {
+    outline: none;
+    border-color: var(--sage);
+    background: #fff;
+}
+.field-hint {
+    font-size: 0.67rem; color: var(--mid-grey);
+    margin-top: 0.25rem;
+}
+
+/* ══════════════════════════════════════
+   RUN BUTTON
+══════════════════════════════════════ */
+.run-btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 0.7rem 1.8rem;
+    background: var(--sage);
+    color: #fff;
+    border: none; border-radius: 11px;
+    font-size: 0.88rem; font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background 0.16s, box-shadow 0.16s, transform 0.1s;
+    box-shadow: 0 3px 12px rgba(107,143,113,0.3);
+}
+.run-btn:hover {
+    background: var(--sage-dark);
+    box-shadow: 0 5px 18px rgba(107,143,113,0.4);
+    transform: translateY(-1px);
+}
+.run-btn:active { transform: translateY(0); }
+.run-btn.loading { opacity: 0.7; cursor: not-allowed; }
+
+/* ══════════════════════════════════════
+   SPINNER OVERLAY
+══════════════════════════════════════ */
+.spinner-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(44,44,44,0.45);
+    backdrop-filter: blur(3px);
+    z-index: 9000;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 1rem;
+}
+.spinner-overlay.show { display: flex; }
+.spinner-box {
+    background: #fff; border-radius: 18px;
+    padding: 2rem 2.5rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+}
+.spinner-ring {
+    width: 52px; height: 52px;
+    border: 4px solid var(--light-grey);
+    border-top-color: var(--sage);
+    border-radius: 50%;
+    animation: spin 0.85s linear infinite;
+    margin: 0 auto 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-box h4 {
+    font-size: 0.95rem; font-weight: 600;
+    color: var(--charcoal); margin-bottom: 0.3rem;
+}
+.spinner-box p { font-size: 0.78rem; color: var(--mid-grey); margin: 0; }
+
+/* ══════════════════════════════════════
+   ERROR CARD
+══════════════════════════════════════ */
+.error-card {
+    background: #fdf0f0;
+    border: 1px solid rgba(217,79,79,0.22);
+    border-radius: 13px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.6rem;
+    display: flex; gap: 12px; align-items: flex-start;
+}
+.error-card i { color: #c0392b; font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.error-card h5 { font-size: 0.85rem; font-weight: 600; color: #c0392b; margin-bottom: 0.25rem; }
+.error-card pre {
+    font-size: 0.75rem; color: #7d2020;
+    white-space: pre-wrap; word-break: break-word; margin: 0;
+    font-family: 'Courier New', monospace;
+}
+
+/* ══════════════════════════════════════
+   RESULTS SECTION
+══════════════════════════════════════ */
+.results-section { margin-top: 2rem; }
+.results-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 1.4rem;
+}
+.results-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem; letter-spacing: -0.01em;
+    color: var(--charcoal); margin: 0;
+}
+.result-mode-badge {
+    font-size: 0.7rem; font-weight: 600;
+    padding: 0.22rem 0.7rem; border-radius: 100px;
+    background: var(--sage-light);
+    color: var(--sage-dark);
+    border: 1px solid rgba(107,143,113,0.25);
+}
+
+/* Metric grid */
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.4rem;
+}
+.metric-card {
+    background: #fff;
+    border: 1px solid var(--light-grey);
+    border-radius: 13px;
+    padding: 1.1rem 1.2rem;
+    text-align: center;
+    transition: box-shadow 0.16s;
+}
+.metric-card:hover { box-shadow: 0 4px 16px rgba(44,44,44,0.07); }
+.metric-val {
+    font-family: var(--font-display);
+    font-size: 1.65rem; letter-spacing: -0.03em;
+    color: var(--charcoal); line-height: 1.1;
+    margin-bottom: 0.35rem;
+}
+.metric-val.good  { color: var(--sage-dark); }
+.metric-val.warn  { color: var(--accent); }
+.metric-label {
+    font-size: 0.7rem; font-weight: 600;
+    color: var(--mid-grey); letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Charts row */
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem; margin-bottom: 1.4rem;
+}
+.chart-card {
+    background: #fff;
+    border: 1px solid var(--light-grey);
+    border-radius: 13px;
+    padding: 1rem;
+    overflow: hidden;
+}
+.chart-card h5 {
+    font-size: 0.75rem; font-weight: 600;
+    color: var(--mid-grey); letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+}
+.chart-card img {
+    width: 100%; border-radius: 8px; display: block;
+}
+
+/* Per-class table */
+.class-table-wrap {
+    background: #fff;
+    border: 1px solid var(--light-grey);
+    border-radius: 13px;
+    overflow: hidden;
+    margin-bottom: 1.4rem;
+}
+.class-table-wrap h5 {
+    font-size: 0.75rem; font-weight: 600;
+    color: var(--mid-grey); letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.9rem 1.2rem 0.6rem;
+    border-bottom: 1px solid var(--light-grey);
+}
+.class-table { width: 100%; border-collapse: collapse; }
+.class-table th {
+    font-size: 0.7rem; font-weight: 600;
+    color: var(--mid-grey); letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.55rem 1.2rem;
+    text-align: left;
+    background: var(--cream);
+    border-bottom: 1px solid var(--light-grey);
+}
+.class-table td {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.82rem; color: var(--charcoal);
+    border-bottom: 1px solid rgba(232,228,220,0.5);
+}
+.class-table tr:last-child td { border-bottom: none; }
+.class-table tr:hover td { background: var(--cream); }
+.badge-class {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-weight: 600;
+}
+.class-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-0 { background: #60A5FA; }
+.dot-1 { background: #EF4444; }
+.dot-2 { background: #22C55E; }
+.dot-3 { background: #A78BFA; }
+
+/* Classification report */
+.report-block {
+    background: #1a1a1a;
+    border-radius: 13px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.4rem;
+    overflow-x: auto;
+}
+.report-block h5 {
+    font-size: 0.72rem; font-weight: 600;
+    color: rgba(255,255,255,0.35); letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+}
+.report-block pre {
+    font-size: 0.78rem;
+    color: #a8c9ac;
+    font-family: 'Courier New', monospace;
+    margin: 0; white-space: pre;
+}
+
+/* ══════════════════════════════════════
+   PIPELINE INFO SECTION
+══════════════════════════════════════ */
+.info-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-top: 2rem;
+}
+
+.info-card {
+    background: #fff;
+    border: 1px solid var(--light-grey);
+    border-radius: 13px;
+    padding: 1.2rem 1.4rem;
+}
+.info-card h4 {
+    font-size: 0.8rem; font-weight: 600;
+    color: var(--mid-grey); letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 7px;
+}
+
+/* Pipeline steps */
+.pipeline-steps { display: flex; flex-direction: column; gap: 0.6rem; }
+.pipeline-step {
+    display: flex; gap: 10px; align-items: flex-start;
+}
+.step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--sage-light);
+    color: var(--sage-dark); font-size: 0.65rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+}
+.step-text strong {
+    display: block;
+    font-size: 0.78rem; font-weight: 600; color: var(--charcoal);
+}
+.step-text span {
+    font-size: 0.72rem; color: var(--mid-grey);
+}
+
+/* Model stage rows */
+.stage-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+.stage-row {
+    display: flex; gap: 10px; align-items: center;
+    padding: 0.55rem 0.8rem; border-radius: 9px;
+    background: var(--cream);
+}
+.stage-badge {
+    font-size: 0.62rem; font-weight: 700;
+    padding: 0.18rem 0.55rem; border-radius: 5px;
+    flex-shrink: 0;
+}
+.stage-badge.a { background: var(--sage-light); color: var(--sage-dark); }
+.stage-badge.b { background: var(--accent-soft); color: var(--accent); }
+.stage-badge.out { background: #f0eeff; color: #5b40b0; }
+.stage-type { font-size: 0.75rem; font-weight: 600; color: var(--charcoal); flex-shrink: 0; }
+.stage-info { font-size: 0.72rem; color: var(--mid-grey); }
+
+/* Signal table */
+.signal-table { width: 100%; border-collapse: collapse; }
+.signal-table th {
+    font-size: 0.67rem; font-weight: 600;
+    color: var(--mid-grey); letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.7rem;
+    text-align: left;
+    background: var(--cream);
+    border-bottom: 1px solid var(--light-grey);
+}
+.signal-table td {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.78rem; color: var(--charcoal);
+    border-bottom: 1px solid rgba(232,228,220,0.4);
+}
+.signal-table tr:last-child td { border-bottom: none; }
+.fft-yes  { color: var(--sage-dark); font-weight: 600; font-size: 0.7rem; }
+.fft-no   { color: var(--mid-grey);  font-size: 0.7rem; }
+.src-wrist { background: var(--sage-light);  color: var(--sage-dark); }
+.src-chest { background: var(--accent-soft); color: var(--accent); }
+.src-badge {
+    font-size: 0.63rem; font-weight: 600;
+    padding: 1px 7px; border-radius: 5px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .charts-row { grid-template-columns: 1fr 1fr; }
+    .info-grid   { grid-template-columns: 1fr; }
+    .mode-cards  { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+    .train-page { padding: 1.2rem 1rem 2rem; }
+    .charts-row { grid-template-columns: 1fr; }
+    .metric-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="train-page">
+
+    <!-- ── Page Header ── -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1>Model Training</h1>
+            <p>Two-stage XGBoost stress detection pipeline — WESAD physiological dataset</p>
+            <div class="page-header-badge">
+                <i class="bi bi-cpu" style="font-size:0.7rem;"></i>
+                XGBoost · Stage A + Stage B
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Error ── -->
+    {% if training_error %}
+    <div class="error-card">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+            <h5>Operation Failed</h5>
+            <pre>{{ training_error }}</pre>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Training Form ── -->
+    <form method="POST" id="trainForm" onsubmit="startLoading()">
+        {% csrf_token %}
+
+        <!-- Mode cards -->
+        <div class="mode-cards">
+
+            <!-- Fast -->
+            <label class="mode-card {% if selected_mode != 'slow' %}selected{% endif %}"
+                   id="cardFast" onclick="selectMode('fast')">
+                <input type="radio" name="mode" value="fast"
+                       {% if selected_mode != 'slow' %}checked{% endif %}>
+                <div class="mode-card-header">
+                    <div class="mode-icon fast"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div>
+                        <h3>Quick Evaluate</h3>
+                    </div>
+                </div>
+                <p>Load existing saved models and evaluate on the held-out test split. No retraining — results in seconds.</p>
+                <div class="mode-card-check"><i class="bi bi-check"></i></div>
+            </label>
+
+            <!-- Slow -->
+          
+
+        </div>
+
+        <!-- Advanced options (retrain only) -->
+        <div class="adv-panel {% if selected_mode == 'slow' %}visible{% endif %}" id="advPanel">
+         
+            <div class="adv-grid">
+                <div class="field-group">
+                    <label>Window (seconds)</label>
+                    <input type="number" name="window_sec" min="30" max="120" step="10"
+                           value="{{ form_window_sec|default:60 }}">
+                    <div class="field-hint">Segment length for feature extraction</div>
+                </div>
+                <div class="field-group">
+                    <label>Step (seconds)</label>
+                    <input type="number" name="step_sec" min="5" max="60" step="5"
+                           value="{{ form_step_sec|default:15 }}">
+                    <div class="field-hint">Overlap stride between windows</div>
+                </div>
+                <div class="field-group">
+                    <label>Stage A estimators</label>
+                    <input type="number" name="n_estimators_a" min="100" max="2000" step="50"
+                           value="{{ form_n_est_a|default:700 }}">
+                    <div class="field-hint">Trees for stress vs non-stress</div>
+                </div>
+                <div class="field-group">
+                    <label>Stage B estimators</label>
+                    <input type="number" name="n_estimators_b" min="100" max="2000" step="50"
+                           value="{{ form_n_est_b|default:800 }}">
+                    <div class="field-hint">Trees for 3-class sub-classifier</div>
+                </div>
+                <div class="field-group">
+                    <label>Stress threshold</label>
+                    <input type="number" name="stress_threshold" min="0.1" max="0.9" step="0.05"
+                           value="{{ form_stress_thr|default:'0.35' }}">
+                    <div class="field-hint">Stage A probability cutoff</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="run-btn" id="runBtn">
+            <i class="bi bi-play-fill"></i>
+            <span id="runBtnText">Run</span>
+        </button>
+
+    </form>
+
+    <!-- ══════════════════════════════════════
+         RESULTS
+    ══════════════════════════════════════ -->
+    {% if training_results %}
+    {% with r=training_results %}
+    <div class="results-section">
+
+
+        <!-- Key metrics -->
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-val good">{{ r.test_accuracy }}</div>
+                <div class="metric-label">Test Accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val good">{{ r.macro_f1 }}</div>
+                <div class="metric-label">Macro F1</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val">{{ r.correct_predictions }}</div>
+                <div class="metric-label">Correct</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val warn">{{ r.wrong_predictions }}</div>
+                <div class="metric-label">Wrong</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val">{{ r.total_samples }}</div>
+                <div class="metric-label">Test Windows</div>
+            </div>
+            {% if r.total_windows %}
+            <div class="metric-card">
+                <div class="metric-val">{{ r.total_windows }}</div>
+                <div class="metric-label">Total Windows</div>
+            </div>
+            {% endif %}
+            {% if r.n_subjects %}
+            <div class="metric-card">
+                <div class="metric-val">{{ r.n_subjects }}</div>
+                <div class="metric-label">Subjects</div>
+            </div>
+            {% endif %}
+            {% if r.n_features %}
+            <div class="metric-card">
+                <div class="metric-val">{{ r.n_features }}</div>
+                <div class="metric-label">Features</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+            {% if r.cm_base64 %}
+            <div class="chart-card">
+                <h5><i class="bi bi-grid-3x3"></i> Confusion Matrix</h5>
+                <img src="data:image/png;base64,{{ r.cm_base64 }}" alt="Confusion Matrix">
+            </div>
+            {% endif %}
+            {% if r.class_acc_base64 %}
+            <div class="chart-card">
+                <h5><i class="bi bi-bar-chart"></i> Per-Class Accuracy</h5>
+                <img src="data:image/png;base64,{{ r.class_acc_base64 }}" alt="Per-Class Accuracy">
+            </div>
+            {% endif %}
+            {% if r.dist_base64 %}
+            <div class="chart-card">
+                <h5><i class="bi bi-pie-chart"></i> Prediction Distribution</h5>
+                <img src="data:image/png;base64,{{ r.dist_base64 }}" alt="Prediction Distribution">
+            </div>
+            {% endif %}
+        </div>
+
+        {% if r.label_dist_base64 %}
+        <div class="charts-row" style="grid-template-columns: 1fr 2fr;">
+            <div class="chart-card">
+                <h5><i class="bi bi-bar-chart-line"></i> Test Label Distribution</h5>
+                <img src="data:image/png;base64,{{ r.label_dist_base64 }}" alt="Label Distribution">
+            </div>
+            <div class="class-table-wrap" style="border-radius:13px; border:1px solid var(--light-grey);">
+                <h5>Per-Class Metrics</h5>
+                <table class="class-table">
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1</th>
+                            <th>Support</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in r.per_class_metrics %}
+                        <tr>
+                            <td>
+                                <span class="badge-class">
+                                    <span class="class-dot dot-{{ forloop.counter0 }}"></span>
+                                    {{ m.name }}
+                                </span>
+                            </td>
+                            <td>{{ m.precision }}</td>
+                            <td>{{ m.recall }}</td>
+                            <td>{{ m.f1 }}</td>
+                            <td>{{ m.support }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Model info row (retrain) -->
+        {% if r.mode == 'retrain' %}
+        <div class="metric-grid" style="margin-top:0.5rem;">
+            <div class="metric-card">
+                <div class="metric-val">{{ r.train_accuracy }}</div>
+                <div class="metric-label">Train Accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val">{{ r.val_accuracy|default:"—" }}</div>
+                <div class="metric-label">Val Accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:1.1rem;">{{ r.model_size_A }}</div>
+                <div class="metric-label">Stage A Size</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:1.1rem;">{{ r.model_size_B }}</div>
+                <div class="metric-label">Stage B Size</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Classification report -->
+        {% if r.classification_report %}
+        <div class="report-block">
+            <h5><i class="bi bi-terminal"></i> &nbsp;Classification Report</h5>
+            <pre>{{ r.classification_report }}</pre>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endwith %}
+    {% endif %}
+
+    <!-- ══════════════════════════════════════
+         PIPELINE INFO (always shown)
+    ══════════════════════════════════════ -->
+    <div class="info-grid">
+
+        <!-- Pipeline steps -->
+        <div class="info-card">
+            <h4><i class="bi bi-arrow-right-circle" style="color:var(--sage);"></i> Processing Pipeline</h4>
+            <div class="pipeline-steps">
+                {% for step in pipeline_steps %}
+                <div class="pipeline-step">
+                    <div class="step-num">{{ forloop.counter }}</div>
+                    <div class="step-text">
+                        <strong>{{ step.step }}</strong>
+                        <span>{{ step.detail }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Model architecture -->
+        <div class="info-card">
+            <h4><i class="bi bi-diagram-3" style="color:var(--accent);"></i> Model Architecture</h4>
+            <div class="stage-rows">
+                {% for s in model_stages %}
+                <div class="stage-row">
+                    <span class="stage-badge {% if s.stage == 'Stage A' %}a{% elif s.stage == 'Stage B' %}b{% else %}out{% endif %}">
+                        {{ s.stage }}
+                    </span>
+                    <span class="stage-type">{{ s.type }}</span>
+                    <span class="stage-info">— {{ s.info }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Signal table -->
+        <div class="info-card" style="grid-column: 1 / -1;">
+            <h4><i class="bi bi-activity" style="color:var(--sage);"></i> Input Signals</h4>
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Signal</th>
+                        <th>Source</th>
+                        <th>Sampling Rate</th>
+                        <th>FFT Features</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sig in signal_info %}
+                    <tr>
+                        <td><strong>{{ sig.name }}</strong></td>
+                        <td>
+                            <span class="src-badge {% if sig.source == 'Wrist' %}src-wrist{% else %}src-chest{% endif %}">
+                                {{ sig.source }}
+                            </span>
+                        </td>
+                        <td>{{ sig.fs }}</td>
+                        <td>
+                            {% if sig.fft %}
+                            <span class="fft-yes"><i class="bi bi-check-circle-fill"></i> Yes</span>
+                            {% else %}
+                            <span class="fft-no"><i class="bi bi-dash-circle"></i> No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Spinner overlay -->
+<div class="spinner-overlay" id="spinnerOverlay">
+    <div class="spinner-box">
+        <div class="spinner-ring"></div>
+        <h4 id="spinnerTitle">Processing…</h4>
+        <p id="spinnerSub">Please wait, this may take a moment</p>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── Mode selector ── */
+function selectMode(mode) {
+    document.querySelector('input[value="fast"]').checked = (mode === 'fast');
+    document.querySelector('input[value="slow"]').checked = (mode === 'slow');
+
+    document.getElementById('cardFast').classList.toggle('selected', mode === 'fast');
+    document.getElementById('cardSlow').classList.toggle('selected', mode === 'slow');
+
+    document.getElementById('advPanel').classList.toggle('visible', mode === 'slow');
+
+    const btn = document.getElementById('runBtnText');
+    btn.textContent = mode === 'fast' ? 'Quick Evaluate' : 'Start Retrain';
+}
+
+/* ── Spinner on submit ── */
+function startLoading() {
+    const isFast = document.querySelector('input[value="fast"]').checked;
+    const overlay  = document.getElementById('spinnerOverlay');
+    const title    = document.getElementById('spinnerTitle');
+    const sub      = document.getElementById('spinnerSub');
+
+    if (isFast) {
+        title.textContent = 'Evaluating Models…';
+        sub.textContent   = 'Loading models and running predictions';
+    } else {
+        title.textContent = 'Full Retrain in Progress…';
+        sub.textContent   = 'Processing WESAD signals · extracting features · training XGBoost';
+    }
+
+    overlay.classList.add('show');
+    document.getElementById('runBtn').classList.add('loading');
+}
+
+/* ── Init button text ── */
+(function () {
+    const isSlow = document.querySelector('input[value="slow"]')?.checked;
+    document.getElementById('runBtnText').textContent = isSlow ? 'Start Retrain' : 'Quick Evaluate';
+})();
+</script>
+{% endblock %}

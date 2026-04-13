@@ -1,0 +1,544 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-section {
+        min-height: 84vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-section::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, var(--light-grey) 1px, transparent 1px);
+        background-size: 28px 28px;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .auth-card {
+        position: relative;
+        z-index: 1;
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 24px;
+        padding: 2.5rem 2.75rem 2.25rem;
+        max-width: 720px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(44,44,44,0.08);
+        animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .auth-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 12%; right: 12%;
+        height: 3px;
+        border-radius: 0 0 6px 6px;
+        background: linear-gradient(90deg, transparent, var(--sage), transparent);
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .auth-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--light-grey);
+    }
+
+    .auth-icon {
+        width: 52px; height: 52px;
+        border-radius: 13px;
+        background: var(--sage-light);
+        border: 1px solid rgba(107,143,113,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; color: var(--sage-dark);
+        flex-shrink: 0;
+    }
+
+    .auth-eyebrow {
+        font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--sage); margin-bottom: 0.2rem;
+    }
+
+    .auth-title {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        color: var(--charcoal);
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+
+    /* Section label */
+    .field-section {
+        font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.1em; text-transform: uppercase;
+        color: var(--mid-grey);
+        margin: 1.5rem 0 0.9rem;
+        display: flex; align-items: center; gap: 8px;
+    }
+
+    .field-section::after {
+        content: ''; flex: 1;
+        height: 1px; background: var(--light-grey);
+    }
+
+    .field-section i { color: var(--sage); }
+
+    /* Form grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.85rem 1.1rem;
+    }
+
+    .form-grid .span-2 { grid-column: 1 / -1; }
+
+    /* Field */
+    .field-wrap { display: flex; flex-direction: column; }
+
+    .form-label-custom {
+        font-size: 0.75rem; font-weight: 600;
+        color: var(--charcoal); letter-spacing: 0.02em;
+        margin-bottom: 0.3rem;
+        display: flex; align-items: center; gap: 5px;
+    }
+
+    .form-label-custom .req { color: #d94f4f; }
+
+    .input-icon-wrap { position: relative; }
+
+    .input-icon-wrap i.field-ico {
+        position: absolute; left: 0.82rem; top: 50%;
+        transform: translateY(-50%);
+        color: var(--mid-grey); font-size: 0.85rem;
+        pointer-events: none; z-index: 1;
+    }
+
+    .input-icon-wrap.textarea-wrap i.field-ico {
+        top: 0.75rem; transform: none;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        border: 1.5px solid var(--light-grey);
+        border-radius: 10px;
+        padding: 0.62rem 0.85rem 0.62rem 2.3rem;
+        font-family: var(--font-body); font-size: 0.875rem;
+        color: var(--charcoal); background: var(--cream);
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        outline: none;
+        -webkit-appearance: none;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--sage);
+        box-shadow: 0 0 0 3px rgba(107,143,113,0.12);
+        background: #fff;
+    }
+
+    .form-control-custom.is-invalid {
+        border-color: #d94f4f;
+        background: #fff8f8;
+    }
+
+    .form-control-custom.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(217,79,79,0.1);
+    }
+
+    textarea.form-control-custom {
+        resize: vertical;
+        min-height: 82px;
+        padding-top: 0.65rem;
+        line-height: 1.6;
+    }
+
+    .error-msg {
+        font-size: 0.72rem; color: #d94f4f;
+        margin-top: 0.28rem;
+        display: flex; align-items: center; gap: 4px;
+    }
+
+    .field-hint {
+        font-size: 0.7rem; color: var(--mid-grey);
+        margin-top: 0.28rem; line-height: 1.45;
+    }
+
+    /* Alert */
+    .alert-custom {
+        border-radius: 12px; padding: 0.85rem 1.1rem;
+        font-size: 0.83rem; margin-bottom: 1.25rem;
+        display: flex; align-items: flex-start; gap: 10px;
+        border: 1px solid;
+    }
+    .alert-custom.error {
+        background: #fdf0f0; border-color: rgba(217,79,79,0.25); color: #c0392b;
+    }
+    .alert-custom.success {
+        background: #f0f7f1; border-color: rgba(107,143,113,0.25); color: var(--sage-dark);
+    }
+    .alert-custom i { flex-shrink: 0; margin-top: 1px; }
+
+    /* Submit */
+    .btn-auth-submit {
+        width: 100%; background: var(--sage); color: #fff;
+        font-weight: 700; font-size: 0.9rem;
+        padding: 0.82rem; border-radius: 12px; border: none;
+        cursor: pointer; margin-top: 1.5rem;
+        display: flex; align-items: center; justify-content: center; gap: 9px;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 16px rgba(107,143,113,0.3);
+    }
+    .btn-auth-submit:hover {
+        background: var(--sage-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(107,143,113,0.38);
+    }
+
+    .auth-footer-note {
+        font-size: 0.8rem; color: var(--mid-grey);
+        text-align: center; margin-top: 1.25rem;
+    }
+    .auth-footer-note a {
+        color: var(--sage-dark); font-weight: 600;
+        text-decoration: none; border-bottom: 1px solid var(--sage-light);
+        transition: border-color 0.2s;
+    }
+    .auth-footer-note a:hover { border-color: var(--sage); }
+
+    @media (max-width: 600px) {
+        .form-grid { grid-template-columns: 1fr; }
+        .form-grid .span-2 { grid-column: 1; }
+        .auth-card { padding: 2rem 1.4rem 1.75rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="auth-icon"><i class="bi bi-person-plus"></i></div>
+            <div>
+                <div class="auth-eyebrow">New Account</div>
+                <h1 class="auth-title">Create your account</h1>
+            </div>
+        </div>
+
+        <!-- Django messages -->
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert-custom {% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                <i class="bi bi-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %}"></i>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'UserRegisterActions' %}" novalidate>
+            {% csrf_token %}
+
+            <!-- Hidden status field (initial='waiting') -->
+            <input type="hidden" name="status" value="waiting">
+
+            <!-- ════════════════════════════════
+                 SECTION 1 — Account Credentials
+            ════════════════════════════════ -->
+            <div class="field-section"><i class="bi bi-shield-lock"></i> Account Credentials</div>
+
+            <div class="form-grid">
+
+                <!-- Full Name / Username -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_Username">
+                        Full Name <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-person field-ico"></i>
+                        <input type="text"
+                               id="id_Username"
+                               name="Username"
+                               class="form-control-custom {% if form.Username.errors %}is-invalid{% endif %}"
+                               placeholder="Enter your name"
+                               pattern="[a-zA-Z]+"
+                               value="{{ form.Username.value|default:'' }}"
+                               maxlength="100"
+                               title="Only letters allowed"
+                               required>
+                    </div>
+                    {% if form.Username.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.Username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Login ID -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_loginid">
+                        Login ID <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-at field-ico"></i>
+                        <input type="text"
+                               id="id_loginid"
+                               name="loginid"
+                               class="form-control-custom {% if form.loginid.errors %}is-invalid{% endif %}"
+                               placeholder="Enter Login ID"
+                               pattern="[a-zA-Z]+"
+                               value="{{ form.loginid.value|default:'' }}"
+                               maxlength="100"
+                               title="Only letters allowed"
+                               required>
+                    </div>
+                    {% if form.loginid.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.loginid.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_password">
+                        Password <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-lock field-ico"></i>
+                        <input type="password"
+                               id="id_password"
+                               name="password"
+                               class="form-control-custom {% if form.password.errors %}is-invalid{% endif %}"
+                               placeholder="Create a strong password"
+                               pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                               maxlength="100"
+                               title="Must contain at least one number, one uppercase &amp; lowercase letter, and minimum 8 characters"
+                               required>
+                    </div>
+                    <div class="field-hint">Min 8 chars &middot; uppercase &middot; lowercase &middot; number</div>
+                    {% if form.password.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_email">
+                        Email Address <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-envelope field-ico"></i>
+                        <input type="email"
+                               id="id_email"
+                               name="email"
+                               class="form-control-custom {% if form.email.errors %}is-invalid{% endif %}"
+                               placeholder="Enter your email address"
+                               pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
+                               value="{{ form.email.value|default:'' }}"
+                               maxlength="100"
+                               required>
+                    </div>
+                    {% if form.email.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_mobile">
+                        Mobile Number <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-phone field-ico"></i>
+                        <input type="tel"
+                               id="id_mobile"
+                               name="mobile"
+                               class="form-control-custom {% if form.mobile.errors %}is-invalid{% endif %}"
+                               placeholder="Enter 10-digit mobile number"
+                               pattern="[56789][0-9]{9}"
+                               value="{{ form.mobile.value|default:'' }}"
+                               maxlength="10"
+                               title="Must start with 5, 6, 7, 8 or 9 and be 10 digits"
+                               required>
+                    </div>
+                    <div class="field-hint">Must start with 5–9 &middot; 10 digits total</div>
+                    {% if form.mobile.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.mobile.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- ════════════════════════════════
+                 SECTION 2 — Address Details
+            ════════════════════════════════ -->
+            <div class="field-section"><i class="bi bi-geo-alt"></i> Address Details</div>
+
+            <div class="form-grid">
+
+                <!-- Locality -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_locality">
+                        Locality <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-signpost field-ico"></i>
+                        <input type="text"
+                               id="id_locality"
+                               name="locality"
+                               class="form-control-custom {% if form.locality.errors %}is-invalid{% endif %}"
+                               placeholder="Enter your locality"
+                               value="{{ form.locality.value|default:'' }}"
+                               maxlength="100"
+                               required>
+                    </div>
+                    {% if form.locality.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.locality.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- City -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_city">
+                        City <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-buildings field-ico"></i>
+                        <input type="text"
+                               id="id_city"
+                               name="city"
+                               class="form-control-custom {% if form.city.errors %}is-invalid{% endif %}"
+                               placeholder="Enter city"
+                               pattern="[A-Za-z ]+"
+                               value="{{ form.city.value|default:'' }}"
+                               maxlength="100"
+                               title="Enter Characters Only"
+                               autocomplete="off"
+                               required>
+                    </div>
+                    {% if form.city.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.city.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- State -->
+                <div class="field-wrap">
+                    <label class="form-label-custom" for="id_state">
+                        State <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-map field-ico"></i>
+                        <input type="text"
+                               id="id_state"
+                               name="state"
+                               class="form-control-custom {% if form.state.errors %}is-invalid{% endif %}"
+                               placeholder="Enter state"
+                               pattern="[A-Za-z ]+"
+                               value="{{ form.state.value|default:'' }}"
+                               maxlength="100"
+                               title="Enter Characters Only"
+                               autocomplete="off"
+                               required>
+                    </div>
+                    {% if form.state.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.state.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Address — full width -->
+                <div class="field-wrap span-2">
+                    <label class="form-label-custom" for="id_address">
+                        Full Address <span class="req">*</span>
+                    </label>
+                    <div class="input-icon-wrap textarea-wrap">
+                        <i class="bi bi-house field-ico"></i>
+                        <textarea id="id_address"
+                                  name="address"
+                                  class="form-control-custom {% if form.address.errors %}is-invalid{% endif %}"
+                                  placeholder="Enter full address"
+                                  maxlength="250"
+                                  rows="3"
+                                  required>{{ form.address.value|default:'' }}</textarea>
+                    </div>
+                    {% if form.address.errors %}
+                    <div class="error-msg"><i class="bi bi-x-circle"></i> {{ form.address.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn-auth-submit">
+                <i class="bi bi-person-check"></i> Create Account
+            </button>
+
+        </form>
+
+        <div class="auth-footer-note">
+            Already have an account? <a href="{% url 'UserLogin' %}">Sign in</a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Live password border colour
+    const pwdInput = document.getElementById('id_password');
+    if (pwdInput) {
+        pwdInput.addEventListener('input', function () {
+            const v = this.value;
+            const strong = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/.test(v);
+            if (v.length === 0) {
+                this.style.borderColor = '';
+            } else {
+                this.style.borderColor = strong ? 'var(--sage)' : '#d94f4f';
+            }
+        });
+    }
+
+    // Mobile — digits only, max 10
+    const mob = document.getElementById('id_mobile');
+    if (mob) {
+        mob.addEventListener('input', () => {
+            mob.value = mob.value.replace(/[^0-9]/g, '').slice(0, 10);
+        });
+    }
+
+    // Name & Login ID — letters only
+    ['id_Username', 'id_loginid'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', () => {
+                el.value = el.value.replace(/[^a-zA-Z]/g, '');
+            });
+        }
+    });
+
+    // City & State — letters + spaces only
+    ['id_city', 'id_state'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', () => {
+                el.value = el.value.replace(/[^a-zA-Z ]/g, '');
+            });
+        }
+    });
+</script>
+{% endblock %}

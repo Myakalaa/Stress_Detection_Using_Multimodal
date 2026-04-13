@@ -1,0 +1,305 @@
+{% extends 'users/Userbase.html' %}
+{% load static %}
+
+{% block title %}CSV Upload — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .predict-wrap { padding: 3rem 0 5rem; }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; color: var(--mid-grey) !important;
+        text-decoration: none; margin-bottom: 2rem;
+    }
+    .back-link:hover { color: var(--charcoal) !important; }
+
+    .predict-header { margin-bottom: 2.25rem; }
+
+    .predict-eyebrow {
+        font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--sage); margin-bottom: 0.4rem;
+    }
+
+    .predict-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        color: var(--charcoal); letter-spacing: -0.02em;
+        margin-bottom: 0.4rem;
+    }
+
+    .predict-sub {
+        font-size: 0.88rem; color: var(--mid-grey); line-height: 1.6;
+    }
+
+    /* Upload card */
+    .upload-card {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 20px;
+        padding: 2.25rem;
+        box-shadow: 0 8px 32px rgba(44,44,44,0.05);
+    }
+
+    /* Drop zone */
+    .drop-zone {
+        border: 2px dashed var(--light-grey);
+        border-radius: 14px;
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        transition: border-color 0.2s, background 0.2s;
+        cursor: pointer;
+        background: var(--cream);
+        position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+        border-color: var(--sage);
+        background: var(--sage-light);
+    }
+    .drop-zone input[type="file"] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .drop-icon {
+        width: 56px; height: 56px;
+        border-radius: 14px;
+        background: var(--sage-light);
+        color: var(--sage-dark);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; margin: 0 auto 1rem;
+    }
+    .drop-title { font-weight: 600; font-size: 0.92rem; color: var(--charcoal); margin-bottom: 0.3rem; }
+    .drop-sub   { font-size: 0.8rem; color: var(--mid-grey); }
+    .drop-chip  {
+        display: inline-block;
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: var(--sage); color: #fff;
+        padding: 0.2rem 0.65rem; border-radius: 6px; margin-top: 0.75rem;
+    }
+
+    .selected-file {
+        display: none; align-items: center; gap: 10px;
+        background: var(--sage-light);
+        border: 1px solid rgba(107,143,113,0.25);
+        border-radius: 10px;
+        padding: 0.65rem 1rem;
+        margin-top: 1rem;
+        font-size: 0.83rem; color: var(--sage-dark); font-weight: 600;
+    }
+
+    /* Form elements */
+    .form-section-title {
+        font-weight: 700; font-size: 0.82rem;
+        color: var(--charcoal); letter-spacing: 0.02em;
+        margin: 1.5rem 0 0.75rem;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .form-section-title::after {
+        content: ''; flex: 1; height: 1px; background: var(--light-grey);
+    }
+
+    .form-label-custom {
+        font-size: 0.78rem; font-weight: 600;
+        color: var(--charcoal); display: block; margin-bottom: 0.35rem;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        border: 1.5px solid var(--light-grey);
+        border-radius: 10px;
+        padding: 0.62rem 0.9rem;
+        font-family: var(--font-body); font-size: 0.88rem;
+        color: var(--charcoal); background: var(--cream);
+        transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+    }
+    .form-control-custom:focus {
+        border-color: var(--sage);
+        box-shadow: 0 0 0 3px rgba(107,143,113,0.12);
+        background: #fff;
+    }
+
+    .thr-hint { font-size: 0.75rem; color: var(--mid-grey); margin-top: 0.3rem; }
+
+    .btn-predict {
+        width: 100%; background: var(--sage); color: #fff;
+        font-weight: 700; font-size: 0.9rem;
+        padding: 0.82rem; border-radius: 12px; border: none;
+        cursor: pointer; margin-top: 1.5rem;
+        display: flex; align-items: center; justify-content: center; gap: 9px;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 16px rgba(107,143,113,0.3);
+    }
+    .btn-predict:hover {
+        background: var(--sage-dark); transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(107,143,113,0.38);
+    }
+
+    /* Error alert */
+    .error-alert {
+        background: #fdf0f0; border: 1px solid rgba(217,79,79,0.25);
+        border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+        font-size: 0.85rem; color: #d94f4f;
+        display: flex; align-items: flex-start; gap: 10px;
+    }
+    .error-alert i { font-size: 1rem; margin-top: 1px; flex-shrink: 0; }
+
+    /* Sidebar */
+    .info-card {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .info-card-title {
+        font-weight: 700; font-size: 0.85rem;
+        color: var(--charcoal); margin-bottom: 0.75rem;
+        display: flex; align-items: center; gap: 7px;
+    }
+    .info-card-title i { color: var(--sage); }
+
+    .cols-grid {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 0.4rem;
+    }
+    .col-chip {
+        font-size: 0.72rem; font-weight: 600;
+        background: var(--cream); border: 1px solid var(--light-grey);
+        border-radius: 7px; padding: 0.3rem 0.6rem;
+        color: var(--charcoal); font-family: monospace;
+        letter-spacing: 0.02em;
+    }
+    .col-chip.wrist { border-left: 3px solid var(--sage); }
+    .col-chip.chest { border-left: 3px solid var(--accent); }
+
+    .legend { display: flex; gap: 1rem; margin-bottom: 0.65rem; font-size: 0.72rem; color: var(--mid-grey); }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container predict-wrap">
+
+    <a href="{% url 'prediction_home' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Prediction Hub
+    </a>
+
+    <div class="predict-header">
+        <div class="predict-eyebrow">CSV Method</div>
+        <h1 class="predict-title">Upload Sensor CSV</h1>
+        <p class="predict-sub">Upload your wearable device's exported CSV. Features will be automatically extracted and classified.</p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Main form -->
+        <div class="col-lg-7">
+            <div class="upload-card">
+
+                {% if error %}
+                <div class="error-alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <div><strong>Error:</strong> {{ error }}</div>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Drop zone -->
+                    <div class="drop-zone" id="dropZone">
+                        <input type="file" name="csv_file" id="csvFile" accept=".csv" required>
+                        <div class="drop-icon"><i class="bi bi-cloud-upload"></i></div>
+                        <div class="drop-title">Drop your CSV here or click to browse</div>
+                        <div class="drop-sub">Supports .csv files only · All 14 signal columns required</div>
+                        <span class="drop-chip">.csv</span>
+                    </div>
+
+                    <div class="selected-file" id="selectedFile">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span id="fileName">No file selected</span>
+                    </div>
+
+                    <!-- Threshold -->
+                    <div class="form-section-title">Stage-A Threshold</div>
+
+                    <label class="form-label-custom">Stress Probability Threshold</label>
+                    <input type="number" name="threshold" class="form-control-custom"
+                           value="{{ default_threshold }}" min="0.01" max="0.99" step="0.01">
+                    <div class="thr-hint">
+                        If Stage-A stress probability exceeds this value, the output is classified as <strong>Stress</strong>.
+                        Lower = more sensitive. Default: {{ default_threshold }}.
+                    </div>
+
+                    <button type="submit" class="btn-predict">
+                        <i class="bi bi-lightning-charge"></i> Run Prediction
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-5">
+
+            <div class="info-card">
+                <div class="info-card-title"><i class="bi bi-table"></i> Required CSV Columns</div>
+                <div class="legend">
+                    <span><span class="legend-dot" style="background:var(--sage);"></span>Wrist</span>
+                    <span><span class="legend-dot" style="background:var(--accent);"></span>Chest</span>
+                </div>
+                <div class="cols-grid">
+                    <span class="col-chip wrist">W_EDA</span>
+                    <span class="col-chip wrist">W_TEMP</span>
+                    <span class="col-chip wrist">W_BVP</span>
+                    <span class="col-chip wrist">W_ACCx</span>
+                    <span class="col-chip wrist">W_ACCy</span>
+                    <span class="col-chip wrist">W_ACCz</span>
+                    <span class="col-chip chest">C_ECG</span>
+                    <span class="col-chip chest">C_RESP</span>
+                    <span class="col-chip chest">C_EMG</span>
+                    <span class="col-chip chest">C_EDA</span>
+                    <span class="col-chip chest">C_TEMP</span>
+                    <span class="col-chip chest">C_ACCx</span>
+                    <span class="col-chip chest">C_ACCy</span>
+                    <span class="col-chip chest">C_ACCz</span>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-title"><i class="bi bi-info-circle"></i> How it works</div>
+                <div style="font-size:0.8rem;color:var(--mid-grey);line-height:1.7;">
+                    All rows in the CSV are treated as a single recording window. Statistical, time-domain, and frequency-domain features are extracted per signal column, then passed through the two-stage classifier.
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const input = document.getElementById('csvFile');
+    const fileDisplay = document.getElementById('selectedFile');
+    const fileName = document.getElementById('fileName');
+    const dropZone = document.getElementById('dropZone');
+
+    input.addEventListener('change', () => {
+        if (input.files.length) {
+            fileName.textContent = input.files[0].name;
+            fileDisplay.style.display = 'flex';
+        }
+    });
+
+    ['dragover','dragenter'].forEach(e => {
+        dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); });
+    });
+    ['dragleave','drop'].forEach(e => {
+        dropZone.addEventListener(e, () => dropZone.classList.remove('drag-over'));
+    });
+</script>
+{% endblock %}

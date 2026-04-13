@@ -1,0 +1,384 @@
+{% extends 'admins/adminbase.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-wrap { padding: 2.5rem 0 5rem; }
+
+    /* ── Top bar ── */
+    .admin-topbar {
+        background: var(--charcoal);
+        border-radius: 20px;
+        padding: 2rem 2.25rem;
+        margin-bottom: 2rem;
+        display: flex; align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap; gap: 1rem;
+        position: relative; overflow: hidden;
+    }
+
+    .admin-topbar::before {
+        content: '';
+        position: absolute; right: -50px; top: -50px;
+        width: 220px; height: 220px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(200,121,65,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .admin-topbar::after {
+        content: '';
+        position: absolute; left: -40px; bottom: -40px;
+        width: 160px; height: 160px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(107,143,113,0.1) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .topbar-left { position: relative; z-index: 1; }
+
+    .admin-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--accent);
+        background: rgba(200,121,65,0.12);
+        border: 1px solid rgba(200,121,65,0.28);
+        border-radius: 100px; padding: 0.22rem 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .topbar-title {
+        font-family: var(--font-display);
+        font-size: 1.7rem; color: #fff;
+        letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .topbar-sub { font-size: 0.82rem; color: rgba(255,255,255,0.38); margin-top: 0.2rem; }
+
+    .topbar-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; position: relative; z-index: 1; }
+
+    .btn-tprimary {
+        background: var(--accent); color: #fff !important;
+        font-weight: 600; font-size: 0.82rem;
+        padding: 0.58rem 1.2rem; border-radius: 9px; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 7px;
+        transition: background 0.2s, transform 0.15s;
+        box-shadow: 0 3px 12px rgba(200,121,65,0.3);
+    }
+    .btn-tprimary:hover { background: #a8642f; color: #fff !important; transform: translateY(-2px); }
+
+    .btn-tghost {
+        background: transparent; color: rgba(255,255,255,0.65) !important;
+        font-weight: 500; font-size: 0.82rem;
+        padding: 0.58rem 1rem; border-radius: 9px; text-decoration: none;
+        border: 1px solid rgba(255,255,255,0.12);
+        display: inline-flex; align-items: center; gap: 7px;
+        transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-tghost:hover { border-color: rgba(255,255,255,0.3); color: #fff !important; }
+
+    /* ── Stat cards ── */
+    .stat-card {
+        background: #fff; border: 1px solid var(--light-grey);
+        border-radius: 18px; padding: 1.5rem;
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative; overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(44,44,44,0.08); }
+
+    .stat-card::after {
+        content: '';
+        position: absolute; bottom: -20px; right: -20px;
+        width: 80px; height: 80px; border-radius: 50%;
+        opacity: 0.06; pointer-events: none;
+    }
+    .stat-card.s1::after { background: var(--sage); }
+    .stat-card.s2::after { background: #c8a030; }
+    .stat-card.s3::after { background: #2d8a4e; }
+
+    .stat-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; margin-bottom: 1.1rem;
+    }
+    .stat-val {
+        font-family: var(--font-display);
+        font-size: 2.4rem; line-height: 1;
+        color: var(--charcoal); margin-bottom: 0.25rem;
+    }
+    .stat-label { font-size: 0.8rem; color: var(--mid-grey); font-weight: 500; }
+    .stat-trend {
+        font-size: 0.72rem; margin-top: 0.5rem;
+        display: flex; align-items: center; gap: 4px; font-weight: 500;
+    }
+    .trend-green { color: #2d8a4e; }
+    .trend-warn  { color: #a07010; }
+    .trend-muted { color: var(--mid-grey); }
+
+    /* ── Section heading ── */
+    .section-head {
+        font-family: var(--font-display);
+        font-size: 1.2rem; color: var(--charcoal);
+        letter-spacing: -0.015em; margin-bottom: 1rem;
+    }
+
+    /* ── Action cards ── */
+    .qa-card {
+        background: #fff; border: 1.5px solid var(--light-grey);
+        border-radius: 18px; padding: 1.75rem;
+        height: 100%; text-decoration: none;
+        display: flex; flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .qa-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 40px rgba(44,44,44,0.09);
+        border-color: var(--sage);
+    }
+    .qa-icon {
+        width: 48px; height: 48px; border-radius: 13px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; margin-bottom: 1.1rem;
+    }
+    .qa-title { font-weight: 700; font-size: 0.95rem; color: var(--charcoal); margin-bottom: 0.35rem; }
+    .qa-desc  { font-size: 0.82rem; color: var(--mid-grey); line-height: 1.65; flex: 1; }
+    .qa-arrow {
+        margin-top: 1.25rem; font-size: 0.78rem; font-weight: 700;
+        color: var(--sage-dark);
+        display: flex; align-items: center; gap: 4px;
+    }
+
+    /* ── Users table ── */
+    .table-card {
+        background: #fff; border: 1px solid var(--light-grey);
+        border-radius: 18px; overflow: hidden;
+    }
+    .table-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--light-grey);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-card-title { font-weight: 700; font-size: 0.9rem; color: var(--charcoal); }
+
+    .tbl { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    .tbl thead th {
+        font-size: 0.66rem; font-weight: 700;
+        letter-spacing: 0.09em; text-transform: uppercase;
+        color: var(--mid-grey); padding: 0.75rem 1.5rem;
+        background: var(--cream); border-bottom: 1px solid var(--light-grey);
+        text-align: left; white-space: nowrap;
+    }
+    .tbl tbody tr { border-bottom: 1px solid var(--light-grey); transition: background 0.15s; }
+    .tbl tbody tr:last-child { border-bottom: none; }
+    .tbl tbody tr:hover { background: #fafaf8; }
+    .tbl tbody td { padding: 0.9rem 1.5rem; color: var(--charcoal); vertical-align: middle; }
+
+    .user-avatar {
+        width: 32px; height: 32px; border-radius: 50%;
+        background: var(--sage-light); color: var(--sage-dark);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 0.78rem; font-weight: 700; margin-right: 8px; flex-shrink: 0;
+    }
+
+    .status-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
+        text-transform: uppercase; padding: 0.22rem 0.72rem;
+        border-radius: 100px;
+    }
+    .status-pill.waiting   { background: #fff8e8; color: #7a6010; border: 1px solid rgba(200,160,48,0.28); }
+    .status-pill.activated { background: #f0f7f1; color: var(--sage-dark); border: 1px solid rgba(107,143,113,0.28); }
+
+    .tbl-link {
+        color: var(--sage-dark); font-weight: 600; font-size: 0.78rem;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 3px;
+        transition: color 0.2s;
+    }
+    .tbl-link:hover { color: var(--sage); }
+
+    /* ── Logout ── */
+    .logout-row { text-align: center; margin-top: 2.5rem; }
+    .btn-logout {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; font-weight: 500; color: var(--mid-grey) !important;
+        text-decoration: none; border: 1px solid var(--light-grey);
+        border-radius: 8px; padding: 0.45rem 1rem;
+        transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { border-color: #d94f4f; color: #d94f4f !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container admin-wrap">
+
+    <!-- Top bar -->
+    <div class="admin-topbar">
+        <div class="topbar-left">
+            <div class="admin-badge"><i class="bi bi-shield-fill-check"></i> Administrator</div>
+            <div class="topbar-title">Admin Dashboard</div>
+            <div class="topbar-sub">StressWise platform management overview</div>
+        </div>
+        <div class="topbar-actions">
+            <a href="{% url 'ViewRegisteredUsers' %}" class="btn-tprimary">
+                <i class="bi bi-people-fill"></i> View All Users
+            </a>
+            <a href="{% url 'AdminLogin' %}" class="btn-tghost">
+                <i class="bi bi-box-arrow-left"></i> Sign Out
+            </a>
+        </div>
+    </div>
+
+    <!-- ── 3 Stat Cards — context: total_users, active_users, pending_approvals ── -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="stat-card s1">
+                <div class="stat-icon" style="background:var(--sage-light);color:var(--sage-dark);">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-val">{{ total_users }}</div>
+                <div class="stat-label">Total Registered Users</div>
+                <div class="stat-trend trend-muted">
+                    <i class="bi bi-person-plus"></i> All accounts
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card s3">
+                <div class="stat-icon" style="background:#f0f7f1;color:#2d8a4e;">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+                <div class="stat-val">{{ active_users }}</div>
+                <div class="stat-label">Activated Users</div>
+                <div class="stat-trend trend-green">
+                    <i class="bi bi-check2-circle"></i> Access granted
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card s2">
+                <div class="stat-icon" style="background:#fff8e8;color:#a07010;">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="stat-val">{{ pending_approvals }}</div>
+                <div class="stat-label">Pending Approvals</div>
+                <div class="stat-trend trend-warn">
+                    <i class="bi bi-clock"></i> Awaiting activation
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Quick Actions ── -->
+    <div class="section-head mb-3">Quick Actions</div>
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <a href="{% url 'ViewRegisteredUsers' %}" class="qa-card">
+                <div class="qa-icon" style="background:var(--sage-light);color:var(--sage-dark);">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="qa-title">Registered Users</div>
+                <p class="qa-desc">
+                    View the complete list of registered users. Activate accounts to grant platform access, or permanently delete users from the system.
+                </p>
+                <div class="qa-arrow">Manage Users <i class="bi bi-arrow-right-short"></i></div>
+            </a>
+        </div>
+
+        <div class="col-md-6">
+            <a href="{% url 'ViewRegisteredUsers' %}?filter=waiting" class="qa-card">
+                <div class="qa-icon" style="background:#fff8e8;color:#a07010;">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="qa-title">Pending Approvals</div>
+                <p class="qa-desc">
+                    Review accounts currently in <em>waiting</em> status. Activate them to allow login access to the StressWise prediction platform.
+                </p>
+                <div class="qa-arrow">
+                    Review Pending
+                    {% if pending_approvals > 0 %}
+                    <span style="background:var(--accent);color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:100px;margin-left:4px;">
+                        {{ pending_approvals }}
+                    </span>
+                    {% endif %}
+                    <i class="bi bi-arrow-right-short"></i>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- ── Recent Users table ── -->
+    <div class="section-head mb-3">Recent Registrations</div>
+    <div class="table-card">
+        <div class="table-card-header">
+            <span class="table-card-title">Latest Users</span>
+            <a href="{% url 'ViewRegisteredUsers' %}" style="font-size:0.78rem;color:var(--sage-dark);font-weight:600;text-decoration:none;">
+                View all <i class="bi bi-arrow-right-short"></i>
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Login ID</th>
+                        <th>Mobile</th>
+                        <th>City</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr>
+                        <td style="color:var(--mid-grey);font-size:0.75rem;">{{ forloop.counter }}</td>
+                        <td>
+                            <span class="user-avatar">{{ user.Username|slice:":1"|upper }}</span>
+                            {{ user.Username }}
+                        </td>
+                        <td>
+                            <code style="font-size:0.78rem;background:var(--cream);padding:2px 7px;border-radius:5px;">
+                                {{ user.loginid }}
+                            </code>
+                        </td>
+                        <td>{{ user.mobile }}</td>
+                        <td>{{ user.city }}</td>
+                        <td>
+                            <span class="status-pill {{ user.status }}">
+                                <i class="bi bi-{% if user.status == 'activated' %}check-circle-fill{% else %}clock-fill{% endif %}"></i>
+                                {{ user.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'ViewRegisteredUsers' %}" class="tbl-link">
+                                View <i class="bi bi-arrow-right-short"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align:center;color:var(--mid-grey);padding:2.5rem;">
+                            <i class="bi bi-inbox" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;opacity:0.35;"></i>
+                            No users registered yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="logout-row">
+        <a href="{% url 'AdminLogin' %}" class="btn-logout">
+            <i class="bi bi-box-arrow-left"></i> Admin Sign Out
+        </a>
+    </div>
+
+</div>
+{% endblock %}

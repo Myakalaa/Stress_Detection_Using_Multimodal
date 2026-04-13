@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Access Denied — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .denied-section {
+        min-height: 82vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Soft radial background mood */
+    .denied-section::before {
+        content: '';
+        position: absolute;
+        width: 520px;
+        height: 520px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(200,80,80,0.06) 0%, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+
+    /* Subtle dot-grid texture */
+    .denied-section::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, var(--light-grey) 1px, transparent 1px);
+        background-size: 28px 28px;
+        opacity: 0.55;
+        pointer-events: none;
+    }
+
+    .denied-card {
+        position: relative;
+        z-index: 2;
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 24px;
+        padding: 3rem 2.75rem 2.5rem;
+        max-width: 430px;
+        width: 100%;
+        box-shadow: 0 16px 56px rgba(44,44,44,0.08), 0 2px 8px rgba(44,44,44,0.04);
+        animation: cardIn 0.55s cubic-bezier(0.22,1,0.36,1) both;
+        text-align: center;
+    }
+
+    /* Red top accent bar */
+    .denied-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 12%;
+        right: 12%;
+        height: 3px;
+        border-radius: 0 0 6px 6px;
+        background: linear-gradient(90deg, transparent, #d94f4f, transparent);
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(28px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Lock icon */
+    .lock-wrap {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        background: #fdf0f0;
+        border: 1px solid rgba(217,79,79,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        animation: lockPulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes lockPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(217,79,79,0.18); }
+        50%       { box-shadow: 0 0 0 10px rgba(217,79,79,0); }
+    }
+
+    .lock-wrap i {
+        font-size: 1.6rem;
+        color: #d94f4f;
+    }
+
+    /* Tag */
+    .denied-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #d94f4f;
+        background: #fdf0f0;
+        border: 1px solid rgba(217,79,79,0.2);
+        border-radius: 100px;
+        padding: 0.28rem 0.8rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .denied-title {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 400;
+        letter-spacing: -0.025em;
+        color: var(--charcoal);
+        margin-bottom: 0.75rem;
+        line-height: 1.15;
+    }
+
+    .denied-desc {
+        font-size: 0.9rem;
+        color: var(--mid-grey);
+        line-height: 1.75;
+        margin-bottom: 2rem;
+        font-weight: 300;
+    }
+
+    /* Primary CTA */
+    .btn-go-login {
+        display: block;
+        width: 100%;
+        background: var(--sage);
+        color: #fff !important;
+        font-weight: 600;
+        font-size: 0.88rem;
+        letter-spacing: 0.02em;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        text-align: center;
+        border: none;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 14px rgba(107,143,113,0.28);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-go-login:hover {
+        background: var(--sage-dark);
+        color: #fff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(107,143,113,0.35);
+    }
+
+    /* Divider */
+    .or-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin: 1.1rem 0;
+        color: var(--light-grey);
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--mid-grey);
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--light-grey);
+    }
+
+    /* Ghost home button */
+    .btn-go-home {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: transparent;
+        color: var(--charcoal) !important;
+        font-weight: 500;
+        font-size: 0.88rem;
+        border-radius: 10px;
+        padding: 0.72rem 1.5rem;
+        text-decoration: none;
+        border: 1.5px solid var(--light-grey);
+        transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+
+    .btn-go-home:hover {
+        border-color: var(--sage);
+        background: var(--sage-light);
+        color: var(--sage-dark) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Footer note */
+    .denied-footnote {
+        margin-top: 1.75rem;
+        font-size: 0.72rem;
+        color: var(--light-grey);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    /* Register nudge */
+    .register-nudge {
+        margin-top: 1.25rem;
+        font-size: 0.82rem;
+        color: var(--mid-grey);
+    }
+
+    .register-nudge a {
+        color: var(--sage-dark);
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 1px solid var(--sage-light);
+        transition: border-color 0.2s;
+    }
+
+    .register-nudge a:hover {
+        border-color: var(--sage);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="denied-section">
+    <div class="denied-card">
+
+        <!-- Lock icon -->
+        <div class="lock-wrap">
+            <i class="bi bi-lock-fill"></i>
+        </div>
+
+        <!-- Tag -->
+        <div class="denied-tag">
+            <i class="bi bi-shield-exclamation"></i>
+            401 — Unauthorized
+        </div>
+
+        <h1 class="denied-title">Access Denied</h1>
+
+        <p class="denied-desc">
+            You need to be signed in to view this page.<br>
+            Please log in to continue using StressWise.
+        </p>
+
+        <!-- Primary: Login -->
+        <a href="{% url 'UserLogin' %}" class="btn-go-login">
+            <i class="bi bi-box-arrow-in-right"></i>
+            Go to Login
+        </a>
+
+        <div class="or-divider">or</div>
+
+        <!-- Secondary: Home -->
+        <a href="{% url 'index' %}" class="btn-go-home">
+            <i class="bi bi-house"></i>
+            Back to Home
+        </a>
+
+        <!-- Register nudge -->
+        <div class="register-nudge">
+            Don't have an account?&nbsp;
+            <a href="{% url 'UserRegisterForm' %}">Create one free</a>
+        </div>
+
+        <div class="denied-footnote">StressWise &middot; Session Required</div>
+
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,245 @@
+{% extends 'users/Userbase.html' %}
+{% load static %}
+
+{% block title %}Prediction Hub — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hub-wrap { padding: 3rem 0 5rem; }
+
+    .hub-header {
+        text-align: center;
+        max-width: 560px;
+        margin: 0 auto 3rem;
+    }
+
+    .hub-eyebrow {
+        font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--sage); margin-bottom: 0.5rem;
+    }
+
+    .hub-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        color: var(--charcoal); letter-spacing: -0.025em;
+        margin-bottom: 0.75rem;
+    }
+
+    .hub-sub {
+        font-size: 0.92rem; color: var(--mid-grey);
+        line-height: 1.7;
+    }
+
+    /* Method cards */
+    .method-card {
+        background: #fff;
+        border: 1.5px solid var(--light-grey);
+        border-radius: 20px;
+        padding: 2.25rem 2rem 1.75rem;
+        height: 100%;
+        text-decoration: none;
+        display: flex; flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+    .method-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+    }
+    .method-card.csv::before  { background: linear-gradient(90deg, transparent, #2d8a4e, transparent); }
+    .method-card.manual::before { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+
+    .method-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 18px 48px rgba(44,44,44,0.1);
+    }
+    .method-card.csv:hover   { border-color: #2d8a4e; }
+    .method-card.manual:hover { border-color: var(--accent); }
+
+    .method-icon {
+        width: 60px; height: 60px;
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; margin-bottom: 1.5rem;
+    }
+
+    .method-title {
+        font-family: var(--font-display);
+        font-size: 1.35rem; color: var(--charcoal);
+        letter-spacing: -0.02em; margin-bottom: 0.6rem;
+    }
+
+    .method-desc {
+        font-size: 0.87rem; color: var(--mid-grey);
+        line-height: 1.7; flex: 1;
+    }
+
+    .method-checklist {
+        list-style: none; padding: 0; margin: 1.25rem 0 1.5rem;
+    }
+    .method-checklist li {
+        font-size: 0.82rem; color: var(--mid-grey);
+        display: flex; align-items: flex-start; gap: 8px;
+        margin-bottom: 0.5rem;
+    }
+    .method-checklist li i { color: var(--sage); margin-top: 2px; flex-shrink: 0; }
+
+    .method-cta {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-weight: 700; font-size: 0.85rem;
+        padding: 0.7rem 1.4rem;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: transform 0.15s, box-shadow 0.15s;
+        align-self: flex-start;
+    }
+    .method-cta.csv {
+        background: #2d8a4e; color: #fff !important;
+        box-shadow: 0 4px 14px rgba(45,138,78,0.28);
+    }
+    .method-cta.csv:hover { background: #1f6637; transform: translateY(-2px); }
+    .method-cta.manual {
+        background: var(--accent); color: #fff !important;
+        box-shadow: 0 4px 14px rgba(200,121,65,0.28);
+    }
+    .method-cta.manual:hover { background: #a8642f; transform: translateY(-2px); }
+
+    /* Pipeline explainer */
+    .pipeline-strip {
+        background: var(--charcoal);
+        border-radius: 18px;
+        padding: 2rem 2.25rem;
+        margin-top: 3rem;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .pipeline-strip::after {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 220px; height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(107,143,113,0.18) 0%, transparent 70%);
+    }
+    .pipeline-step {
+        position: relative; z-index: 1;
+    }
+    .pip-num {
+        font-family: var(--font-display);
+        font-size: 2rem; color: rgba(255,255,255,0.1);
+        line-height: 1; margin-bottom: 0.5rem;
+    }
+    .pip-title {
+        font-weight: 700; font-size: 0.87rem;
+        color: #fff; margin-bottom: 0.3rem;
+    }
+    .pip-body {
+        font-size: 0.78rem; color: rgba(255,255,255,0.45); line-height: 1.6;
+    }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; color: var(--mid-grey) !important;
+        text-decoration: none;
+        margin-bottom: 2rem;
+    }
+    .back-link:hover { color: var(--charcoal) !important; }
+
+    @media (max-width: 600px) {
+        .pipeline-strip { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container hub-wrap">
+
+    <a href="{% url 'Userbase' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="hub-header">
+        <div class="hub-eyebrow">Choose Method</div>
+        <h1 class="hub-title">Stress Prediction Hub</h1>
+        <p class="hub-sub">
+            Select how you'd like to provide your physiological sensor data.
+            Both methods use our two-stage ML pipeline for accurate affective state classification.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- CSV Upload -->
+        <div class="col-md-6">
+            <div class="method-card csv">
+                <div class="method-icon" style="background:#e8f5ee;color:#2d8a4e;">
+                    <i class="bi bi-filetype-csv"></i>
+                </div>
+                <div class="method-title">CSV File Upload</div>
+                <p class="method-desc">
+                    Upload a pre-recorded sensor CSV file exported from your wearable device. Features are automatically extracted across the entire recording.
+                </p>
+                <ul class="method-checklist">
+                    <li><i class="bi bi-check2-circle"></i> Wrist signals: W_EDA, W_TEMP, W_BVP, W_ACCx/y/z</li>
+                    <li><i class="bi bi-check2-circle"></i> Chest signals: C_ECG, C_RESP, C_EMG, C_EDA, C_TEMP, C_ACCx/y/z</li>
+                    <li><i class="bi bi-check2-circle"></i> Adjustable Stage-A stress threshold</li>
+                    <li><i class="bi bi-check2-circle"></i> Best for real recorded sensor exports</li>
+                </ul>
+                <a href="{% url 'stress_prediction_csv' %}" class="method-cta csv">
+                    <i class="bi bi-upload"></i> Upload CSV
+                </a>
+            </div>
+        </div>
+
+        <!-- Manual Input -->
+        <div class="col-md-6">
+            <div class="method-card manual">
+                <div class="method-icon" style="background:var(--accent-soft);color:var(--accent);">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+                <div class="method-title">Manual Value Entry</div>
+                <p class="method-desc">
+                    Enter a single scalar value per signal channel. StressWise generates a synthetic 60-second constant window and extracts features automatically.
+                </p>
+                <ul class="method-checklist">
+                    <li><i class="bi bi-check2-circle"></i> Enter 14 signal values manually</li>
+                    <li><i class="bi bi-check2-circle"></i> Synthetic 240-sample window (60s × 4Hz)</li>
+                    <li><i class="bi bi-check2-circle"></i> Good for quick spot-checks and demos</li>
+                    <li><i class="bi bi-check2-circle"></i> Adjustable Stage-A stress threshold</li>
+                </ul>
+                <a href="{% url 'stress_prediction_manual' %}" class="method-cta manual">
+                    <i class="bi bi-pencil"></i> Enter Values
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Pipeline strip -->
+    <div class="pipeline-strip">
+        <div class="pipeline-step">
+            <div class="pip-num">01</div>
+            <div class="pip-title">Stage A — Stress Detection</div>
+            <p class="pip-body">A binary classifier determines whether your current physiological state is stressed. Confidence must exceed the configured threshold (default 35%).</p>
+        </div>
+        <div class="pipeline-step">
+            <div class="pip-num">02</div>
+            <div class="pip-title">Stage B — State Refinement</div>
+            <p class="pip-body">If Stage A predicts non-stress, a second 3-class model identifies whether you are in Baseline, Amusement, or Meditation state.</p>
+        </div>
+        <div class="pipeline-step">
+            <div class="pip-num">03</div>
+            <div class="pip-title">Result — Label + Confidence</div>
+            <p class="pip-body">You receive a final affective state label (Baseline, Stress, Amusement or Meditation) together with a percentage confidence score.</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

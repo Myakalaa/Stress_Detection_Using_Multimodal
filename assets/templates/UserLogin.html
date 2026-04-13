@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-section {
+        min-height: 84vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-section::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, var(--light-grey) 1px, transparent 1px);
+        background-size: 28px 28px;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .auth-wrap {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        max-width: 880px;
+        width: 100%;
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(44,44,44,0.08);
+        animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Left panel */
+    .auth-panel-left {
+        background: var(--charcoal);
+        padding: 3rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-panel-left::before {
+        content: '';
+        position: absolute;
+        bottom: -80px;
+        right: -80px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(107,143,113,0.25) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .panel-brand {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        color: #fff;
+        margin-bottom: 2.5rem;
+    }
+
+    .panel-brand span { color: var(--sage); }
+
+    .panel-title {
+        font-family: var(--font-display);
+        font-size: 1.85rem;
+        color: #fff;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+    }
+
+    .panel-title em { color: var(--sage); font-style: italic; }
+
+    .panel-body {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.45);
+        line-height: 1.7;
+        margin-bottom: 2rem;
+    }
+
+    .panel-states {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .state-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.6);
+    }
+
+    .state-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    /* Right panel */
+    .auth-panel-right {
+        padding: 3rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .auth-eyebrow {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-title {
+        font-family: var(--font-display);
+        font-size: 1.65rem;
+        color: var(--charcoal);
+        letter-spacing: -0.02em;
+        margin-bottom: 0.4rem;
+    }
+
+    .auth-sub {
+        font-size: 0.85rem;
+        color: var(--mid-grey);
+        margin-bottom: 2rem;
+    }
+
+    /* Form styles */
+    .form-label-custom {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--charcoal);
+        letter-spacing: 0.02em;
+        margin-bottom: 0.35rem;
+        display: block;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        border: 1.5px solid var(--light-grey);
+        border-radius: 10px;
+        padding: 0.65rem 0.9rem;
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        color: var(--charcoal);
+        background: var(--cream);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--sage);
+        box-shadow: 0 0 0 3px rgba(107,143,113,0.12);
+        background: #fff;
+    }
+
+    .form-group-custom { margin-bottom: 1.1rem; }
+
+    .input-icon-wrap {
+        position: relative;
+    }
+
+    .input-icon-wrap i {
+        position: absolute;
+        left: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--mid-grey);
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+
+    .input-icon-wrap .form-control-custom {
+        padding-left: 2.4rem;
+    }
+
+    .btn-auth-submit {
+        width: 100%;
+        background: var(--sage);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 14px rgba(107,143,113,0.28);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 1.5rem;
+    }
+
+    .btn-auth-submit:hover {
+        background: var(--sage-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107,143,113,0.35);
+    }
+
+    .auth-footer-note {
+        font-size: 0.8rem;
+        color: var(--mid-grey);
+        text-align: center;
+        margin-top: 1.25rem;
+    }
+
+    .auth-footer-note a {
+        color: var(--sage-dark);
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 1px solid var(--sage-light);
+    }
+
+    .auth-footer-note a:hover { border-color: var(--sage); }
+
+    @media (max-width: 700px) {
+        .auth-wrap { grid-template-columns: 1fr; }
+        .auth-panel-left { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-wrap">
+
+        <!-- Left decorative panel -->
+        <div class="auth-panel-left">
+            <div class="panel-brand">Stress<span>Wise</span></div>
+            <div>
+                <h2 class="panel-title">Monitor your body's <em>signals.</em></h2>
+                <p class="panel-body">
+                    Access your physiological stress dashboard. Our models track your affective state in real time using wearable sensor data.
+                </p>
+                <div class="panel-states">
+                    <div class="state-pill"><span class="state-dot" style="background:#a8c9aa;"></span> Baseline — calm, resting</div>
+                    <div class="state-pill"><span class="state-dot" style="background:#e07070;"></span> Stress — elevated arousal</div>
+                    <div class="state-pill"><span class="state-dot" style="background:#c8a96b;"></span> Amusement — positive state</div>
+                    <div class="state-pill"><span class="state-dot" style="background:#7090c8;"></span> Meditation — deep calm</div>
+                </div>
+            </div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.2);letter-spacing:0.08em;text-transform:uppercase;">WESAD Dataset · 10 Models</div>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="auth-panel-right">
+            <div class="auth-eyebrow">User Portal</div>
+            <h1 class="auth-title">Welcome back</h1>
+            <p class="auth-sub">Sign in to your StressWise account</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger py-2 px-3 mb-3" style="font-size:0.83rem;border-radius:10px;">
+                    <i class="bi bi-exclamation-circle me-1"></i>{{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'UserLoginCheck' %}">
+                {% csrf_token %}
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Login ID</label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-person"></i>
+                        <input type="text" name="loginid" class="form-control-custom"
+                               placeholder="Enter your login ID" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Password</label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" name="password" class="form-control-custom"
+                               placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth-submit">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </button>
+            </form>
+
+            <div class="auth-footer-note">
+                Don't have an account? <a href="{% url 'UserRegisterForm' %}">Register free</a>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

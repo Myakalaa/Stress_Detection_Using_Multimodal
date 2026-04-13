@@ -1,0 +1,325 @@
+{% extends 'users/Userbase.html' %}
+{% load static %}
+
+{% block title %}Dashboard — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-wrap {
+        padding: 2.5rem 0 4rem;
+    }
+
+    /* ── Welcome bar ── */
+    .welcome-bar {
+        background: var(--charcoal);
+        border-radius: 18px;
+        padding: 2rem 2.25rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-bar::before {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 220px; height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(107,143,113,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .welcome-greeting {
+        font-size: 0.75rem; font-weight: 700;
+        letter-spacing: 0.1em; text-transform: uppercase;
+        color: var(--sage); margin-bottom: 0.35rem;
+    }
+
+    .welcome-name {
+        font-family: var(--font-display);
+        font-size: 1.7rem; color: #fff;
+        letter-spacing: -0.02em; line-height: 1.2;
+    }
+
+    .welcome-sub {
+        font-size: 0.83rem;
+        color: rgba(255,255,255,0.4);
+        margin-top: 0.3rem;
+    }
+
+    .welcome-actions {
+        display: flex; gap: 0.65rem; flex-wrap: wrap;
+    }
+
+    .btn-w-primary {
+        background: var(--sage); color: #fff !important;
+        font-weight: 600; font-size: 0.83rem;
+        padding: 0.6rem 1.25rem; border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 7px;
+        transition: background 0.2s, transform 0.15s;
+    }
+    .btn-w-primary:hover { background: var(--sage-dark); transform: translateY(-2px); }
+
+    .btn-w-ghost {
+        background: transparent; color: rgba(255,255,255,0.7) !important;
+        font-weight: 500; font-size: 0.83rem;
+        padding: 0.6rem 1.1rem; border-radius: 10px;
+        text-decoration: none; border: 1.5px solid rgba(255,255,255,0.12);
+        display: inline-flex; align-items: center; gap: 7px;
+        transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-w-ghost:hover { border-color: rgba(255,255,255,0.35); color: #fff !important; }
+
+    /* ── Quick stat cards ── */
+    .stat-card {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 16px;
+        padding: 1.4rem 1.5rem;
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(44,44,44,0.07); }
+
+    .stat-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; margin-bottom: 1rem;
+    }
+
+    .stat-val {
+        font-family: var(--font-display);
+        font-size: 1.8rem; line-height: 1;
+        color: var(--charcoal); margin-bottom: 0.2rem;
+    }
+
+    .stat-label {
+        font-size: 0.78rem; color: var(--mid-grey);
+        font-weight: 500;
+    }
+
+    /* ── Section heading ── */
+    .section-head {
+        font-family: var(--font-display);
+        font-size: 1.25rem; color: var(--charcoal);
+        letter-spacing: -0.02em; margin-bottom: 1rem;
+    }
+
+    /* ── Action cards (predict, CSV, manual) ── */
+    .action-card {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 16px;
+        padding: 1.75rem;
+        height: 100%;
+        text-decoration: none;
+        display: flex; flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 36px rgba(44,44,44,0.08);
+        border-color: var(--sage);
+    }
+
+    .action-card-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; margin-bottom: 1.1rem;
+    }
+
+    .action-card-title {
+        font-weight: 700; font-size: 0.95rem;
+        color: var(--charcoal); margin-bottom: 0.35rem;
+    }
+
+    .action-card-desc {
+        font-size: 0.82rem; color: var(--mid-grey);
+        line-height: 1.65; flex: 1;
+    }
+
+    .action-card-arrow {
+        margin-top: 1.25rem;
+        font-size: 0.78rem; font-weight: 600;
+        color: var(--sage-dark);
+        display: flex; align-items: center; gap: 5px;
+    }
+
+    /* ── Info strip ── */
+    .info-strip {
+        background: var(--sage-light);
+        border: 1px solid rgba(107,143,113,0.2);
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-top: 1.75rem;
+    }
+
+    .info-strip-icon {
+        width: 36px; height: 36px;
+        border-radius: 9px;
+        background: var(--sage);
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; flex-shrink: 0;
+    }
+
+    .info-strip-title {
+        font-weight: 700; font-size: 0.87rem;
+        color: var(--sage-dark); margin-bottom: 0.2rem;
+    }
+
+    .info-strip-body {
+        font-size: 0.8rem; color: var(--mid-grey); line-height: 1.6;
+    }
+
+    /* ── Logout link ── */
+    .logout-row {
+        text-align: center;
+        margin-top: 2.5rem;
+    }
+
+    .btn-logout {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; font-weight: 500;
+        color: var(--mid-grey) !important;
+        text-decoration: none;
+        border: 1px solid var(--light-grey);
+        border-radius: 8px;
+        padding: 0.45rem 1rem;
+        transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { border-color: #d94f4f; color: #d94f4f !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-wrap">
+
+    <!-- Welcome bar -->
+    <div class="welcome-bar">
+        <div>
+            <div class="welcome-greeting">&#9679; Logged in</div>
+            <div class="welcome-name">Hello, {{ request.session.loggeduser }}!</div>
+            <div class="welcome-sub">Ready to analyse your physiological data?</div>
+        </div>
+        <div class="welcome-actions">
+            <a href="{% url 'stress_prediction_csv' %}" class="btn-w-primary">
+                <i class="bi bi-upload"></i> Upload CSV
+            </a>
+            <a href="{% url 'stress_prediction_manual' %}" class="btn-w-ghost">
+                <i class="bi bi-pencil-square"></i> Manual Input
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick stats row -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#e8f5ee;color:#2d8a4e;">
+                    <i class="bi bi-activity"></i>
+                </div>
+                <div class="stat-val">4</div>
+                <div class="stat-label">States Detected</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:var(--sage-light);color:var(--sage-dark);">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <div class="stat-val">10</div>
+                <div class="stat-label">ML / DL Models</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent);">
+                    <i class="bi bi-broadcast"></i>
+                </div>
+                <div class="stat-val">14</div>
+                <div class="stat-label">Signal Features</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#e8eef8;color:#3a5fa8;">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-val">93%</div>
+                <div class="stat-label">RNN F1 Score</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="section-head">Run a Prediction</div>
+    <div class="row g-3 mb-2">
+
+        <div class="col-md-4">
+            <a href="{% url 'prediction_home' %}" class="action-card">
+                <div class="action-card-icon" style="background:var(--sage-light);color:var(--sage-dark);">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </div>
+                <div class="action-card-title">Prediction Hub</div>
+                <p class="action-card-desc">Overview of all available prediction methods. Choose between CSV upload or manual value entry.</p>
+                <div class="action-card-arrow">Open Hub <i class="bi bi-arrow-right-short"></i></div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'stress_prediction_csv' %}" class="action-card">
+                <div class="action-card-icon" style="background:#e8f5ee;color:#2d8a4e;">
+                    <i class="bi bi-filetype-csv"></i>
+                </div>
+                <div class="action-card-title">CSV Upload</div>
+                <p class="action-card-desc">Upload a multimodal sensor CSV file (wrist + chest signals). Features are automatically extracted and classified.</p>
+                <div class="action-card-arrow">Upload File <i class="bi bi-arrow-right-short"></i></div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'stress_prediction_manual' %}" class="action-card">
+                <div class="action-card-icon" style="background:var(--accent-soft);color:var(--accent);">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+                <div class="action-card-title">Manual Input</div>
+                <p class="action-card-desc">Enter individual signal values directly. A synthetic 60-second window is generated to produce a real-time prediction.</p>
+                <div class="action-card-arrow">Enter Values <i class="bi bi-arrow-right-short"></i></div>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Info strip -->
+    <div class="info-strip">
+        <div class="info-strip-icon"><i class="bi bi-info-lg"></i></div>
+        <div>
+            <div class="info-strip-title">Two-Stage Prediction Pipeline</div>
+            <div class="info-strip-body">
+                StressWise uses a two-stage model: <strong>Stage A</strong> detects stress vs. non-stress using a trained classifier with a configurable threshold (default 35%).
+                If non-stress is predicted, <strong>Stage B</strong> refines the classification into Baseline, Amusement, or Meditation.
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout -->
+    <div class="logout-row">
+        <a href="{% url 'UserLogin' %}" class="btn-logout">
+            <i class="bi bi-box-arrow-left"></i> Sign Out
+        </a>
+    </div>
+
+</div>
+{% endblock %}

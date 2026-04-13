@@ -1,0 +1,5 @@
+in the media only one subject data is given for training that's why the accuracy is 100
+here is the complete dataset you can download size = 18gb
+
+
+https://www.kaggle.com/datasets/mohamedasem318/wesad-full-dataset

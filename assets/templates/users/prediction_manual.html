@@ -1,0 +1,332 @@
+{% extends 'users/Userbase.html' %}
+{% load static %}
+
+{% block title %}Manual Input — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .predict-wrap { padding: 3rem 0 5rem; }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; color: var(--mid-grey) !important;
+        text-decoration: none; margin-bottom: 2rem;
+    }
+    .back-link:hover { color: var(--charcoal) !important; }
+
+    .predict-eyebrow {
+        font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--sage); margin-bottom: 0.4rem;
+    }
+
+    .predict-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        color: var(--charcoal); letter-spacing: -0.02em; margin-bottom: 0.4rem;
+    }
+
+    .predict-sub {
+        font-size: 0.88rem; color: var(--mid-grey); line-height: 1.6; margin-bottom: 2rem;
+    }
+
+    /* Error */
+    .error-alert {
+        background: #fdf0f0; border: 1px solid rgba(217,79,79,0.25);
+        border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+        font-size: 0.85rem; color: #d94f4f;
+        display: flex; align-items: flex-start; gap: 10px;
+    }
+    .error-alert i { flex-shrink: 0; margin-top: 1px; }
+
+    /* Signal group card */
+    .signal-group {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 18px;
+        padding: 1.75rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .group-header {
+        display: flex; align-items: center; gap: 10px;
+        margin-bottom: 1.25rem;
+    }
+    .group-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+        text-transform: uppercase; padding: 0.28rem 0.8rem;
+        border-radius: 100px;
+    }
+    .group-badge.wrist { background: var(--sage-light); color: var(--sage-dark); }
+    .group-badge.chest { background: var(--accent-soft); color: var(--accent); }
+
+    .group-device {
+        font-size: 0.75rem; color: var(--mid-grey);
+    }
+
+    .fields-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.85rem;
+    }
+
+    .form-label-custom {
+        font-size: 0.75rem; font-weight: 600; color: var(--charcoal);
+        letter-spacing: 0.02em; margin-bottom: 0.3rem; display: block;
+    }
+
+    .field-hint {
+        font-size: 0.68rem; color: var(--mid-grey); margin-bottom: 0.3rem;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        border: 1.5px solid var(--light-grey);
+        border-radius: 10px;
+        padding: 0.6rem 0.85rem;
+        font-family: var(--font-body); font-size: 0.88rem;
+        color: var(--charcoal); background: var(--cream);
+        transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+    }
+    .form-control-custom:focus {
+        border-color: var(--sage);
+        box-shadow: 0 0 0 3px rgba(107,143,113,0.12);
+        background: #fff;
+    }
+    .form-control-custom.wrist:focus { border-color: var(--sage); }
+    .form-control-custom.chest:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(200,121,65,0.1); }
+
+    /* Threshold section */
+    .thr-card {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.1rem;
+    }
+    .thr-title {
+        font-weight: 700; font-size: 0.88rem; color: var(--charcoal); margin-bottom: 0.6rem;
+    }
+    .thr-hint { font-size: 0.77rem; color: var(--mid-grey); margin-top: 0.35rem; line-height: 1.5; }
+
+    .btn-predict {
+        width: 100%; background: var(--sage); color: #fff;
+        font-weight: 700; font-size: 0.92rem;
+        padding: 0.85rem; border-radius: 12px; border: none;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 9px;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 16px rgba(107,143,113,0.3);
+        margin-top: 0.5rem;
+    }
+    .btn-predict:hover {
+        background: var(--sage-dark); transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(107,143,113,0.38);
+    }
+
+    /* Sticky sidebar */
+    .sidebar-sticky { position: sticky; top: 80px; }
+
+    .info-card {
+        background: #fff; border: 1px solid var(--light-grey);
+        border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem;
+    }
+    .info-card-title {
+        font-weight: 700; font-size: 0.85rem; color: var(--charcoal);
+        margin-bottom: 0.75rem; display: flex; align-items: center; gap: 7px;
+    }
+    .info-card-title i { color: var(--sage); }
+
+    .state-list { list-style: none; padding: 0; margin: 0; }
+    .state-list li {
+        display: flex; align-items: center; gap: 9px;
+        font-size: 0.82rem; color: var(--mid-grey);
+        padding: 0.45rem 0; border-bottom: 1px solid var(--light-grey);
+    }
+    .state-list li:last-child { border-bottom: none; }
+    .state-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container predict-wrap">
+
+    <a href="{% url 'prediction_home' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Prediction Hub
+    </a>
+
+    <div class="predict-eyebrow">Manual Method</div>
+    <h1 class="predict-title">Enter Signal Values</h1>
+    <p class="predict-sub">
+        Input a single representative value per signal. A synthetic 60-second window is generated
+        at 4 Hz (240 samples) to extract features for classification.
+    </p>
+
+    {% if error %}
+    <div class="error-alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <div><strong>Error:</strong> {{ error }}</div>
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+
+                <!-- Wrist signals -->
+                <div class="signal-group">
+                    <div class="group-header">
+                        <span class="group-badge wrist"><i class="bi bi-watch"></i> Wrist</span>
+                        <span class="group-device">Empatica E4</span>
+                    </div>
+                    <div class="fields-grid">
+
+                        <div>
+                            <label class="form-label-custom">W_EDA</label>
+                            <div class="field-hint">Electrodermal Activity (μS)</div>
+                            <input type="number" name="W_EDA" class="form-control-custom wrist"
+                                   placeholder="e.g. 0.5" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">W_TEMP</label>
+                            <div class="field-hint">Skin Temperature (°C)</div>
+                            <input type="number" name="W_TEMP" class="form-control-custom wrist"
+                                   placeholder="e.g. 32.5" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">W_BVP</label>
+                            <div class="field-hint">Blood Volume Pulse (PPG)</div>
+                            <input type="number" name="W_BVP" class="form-control-custom wrist"
+                                   placeholder="e.g. -10.2" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">W_ACCx</label>
+                            <div class="field-hint">Acceleration X (1/64g)</div>
+                            <input type="number" name="W_ACCx" class="form-control-custom wrist"
+                                   placeholder="e.g. 0.0" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">W_ACCy</label>
+                            <div class="field-hint">Acceleration Y (1/64g)</div>
+                            <input type="number" name="W_ACCy" class="form-control-custom wrist"
+                                   placeholder="e.g. -1.0" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">W_ACCz</label>
+                            <div class="field-hint">Acceleration Z (1/64g)</div>
+                            <input type="number" name="W_ACCz" class="form-control-custom wrist"
+                                   placeholder="e.g. 0.0" step="any" required>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Chest signals -->
+                <div class="signal-group">
+                    <div class="group-header">
+                        <span class="group-badge chest"><i class="bi bi-heart-pulse"></i> Chest</span>
+                        <span class="group-device">RespiBAN · 700 Hz</span>
+                    </div>
+                    <div class="fields-grid">
+
+                        <div>
+                            <label class="form-label-custom">C_ECG</label>
+                            <div class="field-hint">Electrocardiogram (mV)</div>
+                            <input type="number" name="C_ECG" class="form-control-custom chest"
+                                   placeholder="e.g. 0.001" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">C_RESP</label>
+                            <div class="field-hint">Respiration (%)</div>
+                            <input type="number" name="C_RESP" class="form-control-custom chest"
+                                   placeholder="e.g. 50.0" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">C_EMG</label>
+                            <div class="field-hint">Electromyogram (mV)</div>
+                            <input type="number" name="C_EMG" class="form-control-custom chest"
+                                   placeholder="e.g. 0.0" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">C_EDA</label>
+                            <div class="field-hint">Electrodermal Activity (μS)</div>
+                            <input type="number" name="C_EDA" class="form-control-custom chest"
+                                   placeholder="e.g. 2.5" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">C_TEMP</label>
+                            <div class="field-hint">Body Temperature (°C)</div>
+                            <input type="number" name="C_TEMP" class="form-control-custom chest"
+                                   placeholder="e.g. 36.5" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">C_ACCx</label>
+                            <div class="field-hint">Acceleration X (g)</div>
+                            <input type="number" name="C_ACCx" class="form-control-custom chest"
+                                   placeholder="e.g. 0.0" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">C_ACCy</label>
+                            <div class="field-hint">Acceleration Y (g)</div>
+                            <input type="number" name="C_ACCy" class="form-control-custom chest"
+                                   placeholder="e.g. -1.0" step="any" required>
+                        </div>
+                        <div>
+                            <label class="form-label-custom">C_ACCz</label>
+                            <div class="field-hint">Acceleration Z (g)</div>
+                            <input type="number" name="C_ACCz" class="form-control-custom chest"
+                                   placeholder="e.g. 0.0" step="any" required>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Threshold -->
+                <div class="thr-card">
+                    <div class="thr-title">Stage-A Stress Threshold</div>
+                    <input type="number" name="threshold" class="form-control-custom"
+                           value="{{ default_threshold }}" min="0.01" max="0.99" step="0.01">
+                    <div class="thr-hint">
+                        Probability cutoff for the stress/non-stress binary classifier.
+                        Values above this threshold → <strong>Stress</strong>. Default: {{ default_threshold }}.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-predict">
+                    <i class="bi bi-lightning-charge"></i> Predict Affective State
+                </button>
+
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="sidebar-sticky">
+
+                    <div class="info-card">
+                        <div class="info-card-title"><i class="bi bi-tags"></i> Possible Outputs</div>
+                        <ul class="state-list">
+                            <li><span class="state-dot" style="background:#a8c9aa;"></span> Baseline — neutral resting state</li>
+                            <li><span class="state-dot" style="background:#e07070;"></span> Stress — elevated arousal detected</li>
+                            <li><span class="state-dot" style="background:#c8a96b;"></span> Amusement — positive emotional state</li>
+                            <li><span class="state-dot" style="background:#7090c8;"></span> Meditation — deep calm state</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-card-title"><i class="bi bi-info-circle"></i> Synthetic Window</div>
+                        <div style="font-size:0.8rem;color:var(--mid-grey);line-height:1.7;">
+                            Each entered value is broadcast into a <strong>240-sample constant array</strong> (60 seconds × 4 Hz).
+                            Features like mean, std, min, max, slope, IQR and FFT are then extracted before inference.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

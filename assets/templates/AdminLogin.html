@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Login — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-section {
+        min-height: 84vh;
+        display: flex; align-items: center; justify-content: center;
+        padding: 3rem 1rem;
+        position: relative; overflow: hidden;
+    }
+
+    .auth-section::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(circle, var(--light-grey) 1px, transparent 1px);
+        background-size: 28px 28px;
+        opacity: 0.5; pointer-events: none; z-index: 0;
+    }
+
+    .auth-wrap {
+        position: relative; z-index: 1;
+        display: grid; grid-template-columns: 1fr 1fr;
+        max-width: 860px; width: 100%;
+        background: #fff; border: 1px solid var(--light-grey);
+        border-radius: 24px; overflow: hidden;
+        box-shadow: 0 20px 60px rgba(44,44,44,0.09);
+        animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Left dark panel ── */
+    .panel-left {
+        background: var(--charcoal);
+        padding: 3rem 2.5rem;
+        display: flex; flex-direction: column; justify-content: space-between;
+        position: relative; overflow: hidden;
+    }
+
+    .panel-left::before {
+        content: '';
+        position: absolute; bottom: -80px; right: -80px;
+        width: 260px; height: 260px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(200,121,65,0.22) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .panel-left::after {
+        content: '';
+        position: absolute; top: -50px; left: -50px;
+        width: 180px; height: 180px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(107,143,113,0.12) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .panel-brand {
+        font-family: var(--font-display);
+        font-size: 1.25rem; color: #fff;
+        position: relative; z-index: 1;
+    }
+    .panel-brand span { color: var(--sage); }
+
+    .panel-mid { position: relative; z-index: 1; }
+
+    .panel-shield {
+        width: 68px; height: 68px; border-radius: 18px;
+        background: rgba(200,121,65,0.12);
+        border: 1px solid rgba(200,121,65,0.28);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.7rem; color: var(--accent);
+        margin-bottom: 1.25rem;
+    }
+
+    .panel-title {
+        font-family: var(--font-display);
+        font-size: 1.75rem; color: #fff;
+        line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 0.75rem;
+    }
+    .panel-title em { color: var(--accent); font-style: italic; }
+
+    .panel-body {
+        font-size: 0.82rem; color: rgba(255,255,255,0.4);
+        line-height: 1.7; margin-bottom: 1.5rem;
+    }
+
+    .access-list { list-style: none; padding: 0; margin: 0; }
+    .access-list li {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 0.78rem; color: rgba(255,255,255,0.5);
+        margin-bottom: 0.5rem;
+    }
+    .access-list li i { color: var(--accent); font-size: 0.8rem; }
+
+    .panel-footer {
+        font-size: 0.65rem; letter-spacing: 0.08em;
+        text-transform: uppercase; color: rgba(255,255,255,0.15);
+        position: relative; z-index: 1;
+    }
+
+    /* ── Right form panel ── */
+    .panel-right {
+        padding: 3rem 2.5rem;
+        display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .form-eyebrow {
+        font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--accent); margin-bottom: 0.4rem;
+    }
+
+    .form-title {
+        font-family: var(--font-display);
+        font-size: 1.65rem; color: var(--charcoal);
+        letter-spacing: -0.02em; margin-bottom: 0.3rem;
+    }
+
+    .form-sub { font-size: 0.83rem; color: var(--mid-grey); margin-bottom: 2rem; }
+
+    /* ── Field ── */
+    .field-wrap { margin-bottom: 1rem; }
+
+    .form-label-custom {
+        font-size: 0.75rem; font-weight: 600;
+        color: var(--charcoal); display: block; margin-bottom: 0.3rem;
+    }
+
+    .input-wrap { position: relative; }
+    .input-wrap .ico {
+        position: absolute; left: 0.82rem; top: 50%;
+        transform: translateY(-50%);
+        color: #b0b8c1; font-size: 0.88rem;
+        pointer-events: none; z-index: 1; transition: color 0.2s;
+    }
+    .input-wrap:focus-within .ico { color: var(--accent); }
+
+    .fc {
+        width: 100%;
+        border: 1.5px solid var(--light-grey); border-radius: 10px;
+        padding: 0.65rem 0.85rem 0.65rem 2.25rem;
+        font-family: var(--font-body); font-size: 0.88rem;
+        color: var(--charcoal); background: var(--cream);
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        outline: none; -webkit-appearance: none;
+    }
+    .fc:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(200,121,65,0.12);
+        background: #fff;
+    }
+
+    /* Alert */
+    .msg-box {
+        border-radius: 11px; padding: 0.8rem 1rem;
+        font-size: 0.83rem; margin-bottom: 1.25rem;
+        display: flex; align-items: flex-start; gap: 9px;
+        border: 1px solid;
+    }
+    .msg-box.warn { background: #fff8e8; border-color: rgba(200,160,48,0.3); color: #7a6010; }
+    .msg-box i { flex-shrink: 0; margin-top: 1px; }
+
+    /* Submit — amber for admin */
+    .btn-submit {
+        width: 100%; background: var(--accent); color: #fff;
+        font-weight: 700; font-size: 0.9rem;
+        padding: 0.78rem; border-radius: 11px; border: none;
+        cursor: pointer; margin-top: 0.5rem;
+        display: flex; align-items: center; justify-content: center; gap: 9px;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 16px rgba(200,121,65,0.3);
+    }
+    .btn-submit:hover {
+        background: #a8642f; transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(200,121,65,0.38);
+    }
+
+    .footer-note {
+        font-size: 0.78rem; color: var(--mid-grey);
+        text-align: center; margin-top: 1.25rem;
+    }
+    .footer-note a {
+        color: var(--sage-dark); font-weight: 600; text-decoration: none;
+        border-bottom: 1px solid var(--sage-light); transition: border-color 0.2s;
+    }
+    .footer-note a:hover { border-color: var(--sage); }
+
+    @media (max-width: 680px) {
+        .auth-wrap { grid-template-columns: 1fr; }
+        .panel-left { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+<div class="auth-wrap">
+
+    <!-- Left panel -->
+    <div class="panel-left">
+        <div class="panel-brand">Stress<span>Wise</span></div>
+
+        <div class="panel-mid">
+            <div class="panel-shield"><i class="bi bi-shield-fill-check"></i></div>
+            <h2 class="panel-title">Admin <em>Control</em><br>Panel</h2>
+            <p class="panel-body">
+                Restricted access. Only authorised administrators may enter this portal to manage users and oversee platform activity.
+            </p>
+            <ul class="access-list">
+                <li><i class="bi bi-check2-circle"></i> View all registered users</li>
+                <li><i class="bi bi-check2-circle"></i> Activate or delete accounts</li>
+                <li><i class="bi bi-check2-circle"></i> Monitor pending approvals</li>
+                <li><i class="bi bi-check2-circle"></i> Platform usage overview</li>
+            </ul>
+        </div>
+
+        <div class="panel-footer">Admin Access Only &middot; StressWise</div>
+    </div>
+
+    <!-- Right form -->
+    <div class="panel-right">
+        <div class="form-eyebrow">Admin Portal</div>
+        <h1 class="form-title">Administrator Login</h1>
+        <p class="form-sub">Sign in with your admin credentials</p>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="msg-box warn">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'AdminLoginCheck' %}">
+            {% csrf_token %}
+
+            <!-- Field name: loginid (matches request.POST.get('loginid')) -->
+            <div class="field-wrap">
+                <label class="form-label-custom" for="adminLoginid">Login ID</label>
+                <div class="input-wrap">
+                    <i class="bi bi-person-badge ico"></i>
+                    <input type="text"
+                           id="adminLoginid"
+                           name="loginid"
+                           class="fc"
+                           placeholder="Enter admin login ID"
+                           required
+                           autocomplete="username">
+                </div>
+            </div>
+
+            <!-- Field name: pswd (matches request.POST.get('pswd')) -->
+            <div class="field-wrap">
+                <label class="form-label-custom" for="adminPswd">Password</label>
+                <div class="input-wrap">
+                    <i class="bi bi-lock ico"></i>
+                    <input type="password"
+                           id="adminPswd"
+                           name="pswd"
+                           class="fc"
+                           placeholder="Enter password"
+                           required
+                           autocomplete="current-password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="bi bi-shield-lock-fill"></i> Sign In as Admin
+            </button>
+        </form>
+
+        <div class="footer-note">
+            Not an admin? <a href="{% url 'UserLogin' %}">User login</a>
+        </div>
+    </div>
+
+</div>
+</section>
+{% endblock %}

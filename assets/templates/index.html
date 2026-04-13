@@ -1,0 +1,1126 @@
+{% extends 'base.html' %}
+
+{% block title %}StressWise — Physiological Stress Detection Platform{% endblock %}
+
+{% block home_page %}active-page{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ═══════════════════════════════════════
+       HERO SECTION
+    ═══════════════════════════════════════ */
+    .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 5rem 0 4rem;
+        background: var(--cream);
+    }
+
+    /* Decorative SVG waveform background */
+    .hero-bg-wave {
+        position: absolute;
+        right: -60px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 55%;
+        opacity: 0.07;
+        pointer-events: none;
+    }
+
+    /* Pill badge */
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--sage-light);
+        color: var(--sage-dark);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.35rem 0.9rem;
+        border-radius: 100px;
+        border: 1px solid rgba(107, 143, 113, 0.25);
+        margin-bottom: 1.5rem;
+        animation: fadeUp 0.5s 0.1s both;
+    }
+
+    .hero-badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--sage);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-headline {
+        font-family: var(--font-display);
+        font-size: clamp(2.4rem, 5.5vw, 4rem);
+        line-height: 1.12;
+        letter-spacing: -0.025em;
+        color: var(--charcoal);
+        margin-bottom: 1.25rem;
+        animation: fadeUp 0.5s 0.2s both;
+    }
+
+    .hero-headline em {
+        font-style: italic;
+        color: var(--sage);
+    }
+
+    .hero-sub {
+        font-size: 1.05rem;
+        color: var(--mid-grey);
+        line-height: 1.7;
+        max-width: 520px;
+        margin-bottom: 2.25rem;
+        font-weight: 300;
+        animation: fadeUp 0.5s 0.3s both;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        animation: fadeUp 0.5s 0.4s both;
+    }
+
+    .btn-primary-hero {
+        background: var(--sage);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.6rem;
+        border-radius: 10px;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 14px rgba(107,143,113,0.3);
+    }
+
+    .btn-primary-hero:hover {
+        background: var(--sage-dark);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107,143,113,0.35);
+    }
+
+    .btn-outline-hero {
+        background: transparent;
+        color: var(--charcoal);
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.4rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--light-grey);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+
+    .btn-outline-hero:hover {
+        border-color: var(--sage);
+        background: var(--sage-light);
+        color: var(--sage-dark);
+        transform: translateY(-2px);
+    }
+
+    /* Hero visual panel */
+    .hero-visual {
+        animation: fadeUp 0.6s 0.3s both;
+    }
+
+    .hero-card {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 12px 48px rgba(44,44,44,0.06);
+        position: relative;
+    }
+
+    .hero-card-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--mid-grey);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.68rem;
+        color: #2d8a4e;
+        background: #e8f5ee;
+        border-radius: 100px;
+        padding: 2px 8px;
+        font-weight: 600;
+    }
+
+    .live-badge .live-dot {
+        width: 6px;
+        height: 6px;
+        background: #2d8a4e;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+
+    /* ECG waveform SVG animation */
+    .ecg-svg {
+        width: 100%;
+        height: 80px;
+        margin-bottom: 1.25rem;
+    }
+
+    .ecg-path {
+        stroke: var(--sage);
+        stroke-width: 2.2;
+        fill: none;
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        animation: drawLine 2.5s ease forwards 0.8s;
+    }
+
+    .ecg-path-faint {
+        stroke: var(--light-grey);
+        stroke-width: 1;
+        fill: none;
+    }
+
+    @keyframes drawLine {
+        to { stroke-dashoffset: 0; }
+    }
+
+    /* Signal metrics row */
+    .signal-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.65rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .metric-chip {
+        background: var(--cream);
+        border: 1px solid var(--light-grey);
+        border-radius: 10px;
+        padding: 0.6rem 0.5rem;
+        text-align: center;
+    }
+
+    .metric-chip .val {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        color: var(--charcoal);
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .metric-chip .lbl {
+        font-size: 0.65rem;
+        color: var(--mid-grey);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    /* State indicator */
+    .state-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--sage-light);
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+    }
+
+    .state-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--sage);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .state-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--sage-dark);
+    }
+
+    .state-sub {
+        font-size: 0.7rem;
+        color: var(--mid-grey);
+    }
+
+    .state-score {
+        margin-left: auto;
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        color: var(--sage-dark);
+    }
+
+    /* ═══════════════════════════════════════
+       STATS STRIP
+    ═══════════════════════════════════════ */
+    .stats-strip {
+        background: var(--charcoal);
+        padding: 2.5rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    .stat-item .num {
+        font-family: var(--font-display);
+        font-size: 2.2rem;
+        color: #fff;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-item .num span {
+        color: var(--sage);
+    }
+
+    .stat-item .desc {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.4);
+        letter-spacing: 0.04em;
+    }
+
+    .stat-sep {
+        width: 1px;
+        height: 40px;
+        background: rgba(255,255,255,0.1);
+        margin: auto;
+    }
+
+    /* ═══════════════════════════════════════
+       HOW IT WORKS
+    ═══════════════════════════════════════ */
+    .section {
+        padding: 5rem 0;
+    }
+
+    .section-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 0.6rem;
+    }
+
+    .section-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.7rem, 3.5vw, 2.5rem);
+        line-height: 1.2;
+        color: var(--charcoal);
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+    }
+
+    .section-body {
+        font-size: 0.95rem;
+        color: var(--mid-grey);
+        line-height: 1.75;
+        max-width: 480px;
+    }
+
+    /* Steps */
+    .step-card {
+        position: relative;
+        padding: 1.75rem;
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+    }
+
+    .step-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44,44,44,0.07);
+    }
+
+    .step-num {
+        font-family: var(--font-display);
+        font-size: 2.8rem;
+        color: var(--light-grey);
+        line-height: 1;
+        margin-bottom: 0.75rem;
+        transition: color 0.2s;
+    }
+
+    .step-card:hover .step-num {
+        color: var(--sage-light);
+    }
+
+    .step-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--sage-light);
+        color: var(--sage-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .step-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--charcoal);
+        margin-bottom: 0.4rem;
+    }
+
+    .step-desc {
+        font-size: 0.85rem;
+        color: var(--mid-grey);
+        line-height: 1.65;
+    }
+
+    /* ═══════════════════════════════════════
+       SIGNALS GRID
+    ═══════════════════════════════════════ */
+    .signals-section {
+        padding: 5rem 0;
+        background: #fff;
+    }
+
+    .signal-card {
+        background: var(--cream);
+        border: 1px solid var(--light-grey);
+        border-radius: 14px;
+        padding: 1.25rem 1.25rem 1rem;
+        transition: border-color 0.2s, transform 0.2s;
+        height: 100%;
+    }
+
+    .signal-card:hover {
+        border-color: var(--sage);
+        transform: translateY(-3px);
+    }
+
+    .signal-icon-wrap {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: var(--sage);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .signal-name {
+        font-weight: 700;
+        font-size: 0.82rem;
+        color: var(--charcoal);
+        letter-spacing: 0.03em;
+        margin-bottom: 0.2rem;
+    }
+
+    .signal-full {
+        font-size: 0.72rem;
+        color: var(--mid-grey);
+        margin-bottom: 0.6rem;
+    }
+
+    .signal-desc {
+        font-size: 0.78rem;
+        color: var(--mid-grey);
+        line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════
+       MODEL PERFORMANCE
+    ═══════════════════════════════════════ */
+    .performance-section {
+        padding: 5rem 0;
+    }
+
+    .model-row {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.6rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .model-row:hover {
+        border-color: var(--sage);
+    }
+
+    .model-name {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: var(--charcoal);
+        width: 140px;
+        flex-shrink: 0;
+    }
+
+    .model-type {
+        font-size: 0.7rem;
+        color: var(--mid-grey);
+        background: var(--cream);
+        border: 1px solid var(--light-grey);
+        border-radius: 100px;
+        padding: 2px 8px;
+        white-space: nowrap;
+    }
+
+    .model-bar-wrap {
+        flex: 1;
+        background: var(--cream);
+        border-radius: 100px;
+        height: 7px;
+        overflow: hidden;
+    }
+
+    .model-bar {
+        height: 100%;
+        border-radius: 100px;
+        background: var(--sage);
+        transition: width 1.2s cubic-bezier(.2,.8,.3,1);
+    }
+
+    .model-bar.dl {
+        background: var(--accent);
+    }
+
+    .model-score {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        color: var(--charcoal);
+        width: 52px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════
+       CTA SECTION
+    ═══════════════════════════════════════ */
+    .cta-section {
+        background: var(--charcoal);
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -80px;
+        right: -80px;
+        width: 340px;
+        height: 340px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(107,143,113,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .cta-section::after {
+        content: '';
+        position: absolute;
+        bottom: -60px;
+        left: -60px;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(200,121,65,0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .cta-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        color: #fff;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+
+    .cta-title em {
+        color: var(--sage);
+        font-style: italic;
+    }
+
+    .cta-body {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.95rem;
+        line-height: 1.75;
+        margin-bottom: 2rem;
+        max-width: 440px;
+    }
+
+    .btn-cta {
+        background: var(--sage);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.92rem;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-cta:hover {
+        background: var(--sage-dark);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .btn-cta-ghost {
+        background: transparent;
+        color: rgba(255,255,255,0.65);
+        font-weight: 500;
+        font-size: 0.92rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        border: 1.5px solid rgba(255,255,255,0.15);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-cta-ghost:hover {
+        border-color: rgba(255,255,255,0.4);
+        color: #fff;
+    }
+
+    /* ═══════════════════════════════════════
+       SCROLL-TRIGGERED REVEALS
+    ═══════════════════════════════════════ */
+    .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════ -->
+<section class="hero">
+    <!-- decorative bg waveform -->
+    <svg class="hero-bg-wave" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="0,150 60,150 80,80 100,220 120,150 160,150 180,60 200,240 220,150 280,150 300,100 320,200 340,150 400,150 420,70 440,230 460,150 520,150 540,110 560,190 580,150 640,150 660,50 680,250 700,150 800,150"
+                  fill="none" stroke="#2C2C2C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <!-- Left: copy -->
+            <div class="col-lg-6">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    ML-Powered · WESAD Dataset
+                </div>
+
+                <h1 class="hero-headline">
+                    Detect stress<br>
+                    before it<br>
+                    <em>takes its toll.</em>
+                </h1>
+
+                <p class="hero-sub">
+                    StressWise analyses multimodal physiological signals from wearable sensors — ECG, EDA, BVP, EMG, respiration, temperature and accelerometry — to classify your current affective state in real time.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="{% url 'UserRegisterForm' %}" class="btn-primary-hero">
+                        <i class="bi bi-person-plus"></i>
+                        Get Started Free
+                    </a>
+                    <a href="{% url 'UserLogin' %}" class="btn-outline-hero">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Sign In
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right: live monitor card -->
+            <div class="col-lg-5 offset-lg-1 hero-visual">
+                <div class="hero-card">
+                    <div class="hero-card-label">
+                        Live Monitoring
+                        <span class="live-badge"><span class="live-dot"></span>Active</span>
+                    </div>
+
+                    <!-- Animated ECG -->
+                    <svg class="ecg-svg" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+                        <!-- grid lines faint -->
+                        <line x1="0" y1="40" x2="400" y2="40" class="ecg-path-faint"/>
+                        <line x1="0" y1="20" x2="400" y2="20" class="ecg-path-faint"/>
+                        <line x1="0" y1="60" x2="400" y2="60" class="ecg-path-faint"/>
+                        <!-- ECG trace -->
+                        <polyline class="ecg-path"
+                            points="0,40 30,40 40,40 45,15 50,65 55,40 80,40 95,40 100,25 105,55 110,40 140,40 155,40 160,10 165,70 170,40 200,40 215,40 220,22 225,58 230,40 260,40 275,40 280,12 285,68 290,40 320,40 335,40 340,18 345,62 350,40 380,40 400,40"/>
+                    </svg>
+
+                    <!-- Metrics -->
+                    <div class="signal-metrics">
+                        <div class="metric-chip">
+                            <div class="val">74</div>
+                            <div class="lbl">BPM</div>
+                        </div>
+                        <div class="metric-chip">
+                            <div class="val">0.82</div>
+                            <div class="lbl">HRV</div>
+                        </div>
+                        <div class="metric-chip">
+                            <div class="val">36.6°</div>
+                            <div class="lbl">Temp</div>
+                        </div>
+                    </div>
+
+                    <!-- Predicted state -->
+                    <div class="state-bar">
+                        <div class="state-icon">
+                            <i class="bi bi-emoji-smile"></i>
+                        </div>
+                        <div>
+                            <div class="state-label">Baseline</div>
+                            <div class="state-sub">Predicted affective state</div>
+                        </div>
+                        <div class="state-score">97%</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     STATS STRIP
+══════════════════════════════════════════════ -->
+<div class="stats-strip">
+    <div class="container">
+        <div class="row justify-content-center align-items-center g-3 text-center">
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="num">15<span>+</span></div>
+                    <div class="desc">Subjects in WESAD</div>
+                </div>
+            </div>
+            <div class="col-auto d-none d-md-block"><div class="stat-sep"></div></div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="num">93<span>%</span></div>
+                    <div class="desc">RNN F1 Score</div>
+                </div>
+            </div>
+            <div class="col-auto d-none d-md-block"><div class="stat-sep"></div></div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="num">10<span></span></div>
+                    <div class="desc">ML / DL Models Tested</div>
+                </div>
+            </div>
+            <div class="col-auto d-none d-md-block"><div class="stat-sep"></div></div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="num">4<span></span></div>
+                    <div class="desc">Affective States Classified</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════════ -->
+<section class="section">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-6">
+                <div class="section-eyebrow reveal">How It Works</div>
+                <h2 class="section-title reveal reveal-delay-1">From raw signals<br>to actionable insight</h2>
+                <p class="section-body reveal reveal-delay-2">
+                    Our pipeline captures biosignals through wearable sensors, extracts meaningful features, and applies trained classification models to predict your stress state in seconds.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-sm-6 col-lg-3 reveal">
+                <div class="step-card">
+                    <div class="step-num">01</div>
+                    <div class="step-icon"><i class="bi bi-watch"></i></div>
+                    <div class="step-title">Wear the Sensor</div>
+                    <p class="step-desc">Attach a wrist or chest wearable device. Sensors continuously record physiological signals including ECG, EDA, temperature and more.</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3 reveal reveal-delay-1">
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <div class="step-icon"><i class="bi bi-cpu"></i></div>
+                    <div class="step-title">Signal Processing</div>
+                    <p class="step-desc">Raw sensor streams are cleaned, segmented and processed into statistical, time-domain and frequency-domain features per signal window.</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3 reveal reveal-delay-2">
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <div class="step-icon"><i class="bi bi-diagram-3"></i></div>
+                    <div class="step-title">Model Inference</div>
+                    <p class="step-desc">Trained ML and deep learning models — RNN, XGBoost, Random Forest and more — classify the current affective state with high accuracy.</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3 reveal reveal-delay-3">
+                <div class="step-card">
+                    <div class="step-num">04</div>
+                    <div class="step-icon"><i class="bi bi-bar-chart-line"></i></div>
+                    <div class="step-title">View Results</div>
+                    <p class="step-desc">Receive a clear, real-time classification — Baseline, Stress, Amusement or Meditation — with confidence scores and trend history.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     PHYSIOLOGICAL SIGNALS
+══════════════════════════════════════════════ -->
+<section class="signals-section">
+    <div class="container">
+        <div class="row mb-5 align-items-end">
+            <div class="col-lg-6">
+                <div class="section-eyebrow reveal">Multimodal Sensing</div>
+                <h2 class="section-title reveal reveal-delay-1">Seven physiological<br>signal streams</h2>
+            </div>
+            <div class="col-lg-5 offset-lg-1">
+                <p class="section-body reveal reveal-delay-2" style="max-width:100%;">
+                    Data is captured simultaneously from RespiBAN (chest) and Empatica E4 (wrist) sensors, providing a rich, complementary view of your body's stress response.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            {% for signal in signals_list %}
+            <!-- Django template loop — static version below -->
+            {% endfor %}
+
+            <!-- Static signal cards -->
+            <div class="col-6 col-md-4 col-lg reveal">
+                <div class="signal-card">
+                    <div class="signal-icon-wrap"><i class="bi bi-heart-pulse"></i></div>
+                    <div class="signal-name">ECG</div>
+                    <div class="signal-full">Electrocardiogram</div>
+                    <p class="signal-desc">Measures electrical heart activity. HRV and HR extracted for stress markers.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg reveal reveal-delay-1">
+                <div class="signal-card">
+                    <div class="signal-icon-wrap"><i class="bi bi-activity"></i></div>
+                    <div class="signal-name">EDA</div>
+                    <div class="signal-full">Electrodermal Activity</div>
+                    <p class="signal-desc">Skin conductance rises with stress due to increased sweat gland activity.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg reveal reveal-delay-2">
+                <div class="signal-card">
+                    <div class="signal-icon-wrap"><i class="bi bi-droplet-half"></i></div>
+                    <div class="signal-name">BVP</div>
+                    <div class="signal-full">Blood Volume Pulse</div>
+                    <p class="signal-desc">Optical PPG signal captures peripheral blood flow and heart rate variation.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg reveal reveal-delay-3">
+                <div class="signal-card">
+                    <div class="signal-icon-wrap"><i class="bi bi-thermometer-half"></i></div>
+                    <div class="signal-name">TEMP</div>
+                    <div class="signal-full">Body Temperature</div>
+                    <p class="signal-desc">Peripheral skin temperature fluctuations correlate with autonomic arousal.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg reveal reveal-delay-4">
+                <div class="signal-card">
+                    <div class="signal-icon-wrap"><i class="bi bi-wind"></i></div>
+                    <div class="signal-name">RESP</div>
+                    <div class="signal-full">Respiration</div>
+                    <p class="signal-desc">Breathing rate and depth shift measurably under cognitive and emotional stress.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     MODEL PERFORMANCE
+══════════════════════════════════════════════ -->
+<section class="performance-section">
+    <div class="container">
+        <div class="row g-5 align-items-center">
+
+            <div class="col-lg-5 reveal">
+                <div class="section-eyebrow">Model Performance</div>
+                <h2 class="section-title">Best-in-class F1<br>across all states</h2>
+                <p class="section-body">
+                    We evaluated 10 algorithms across two experimental phases — intra-subject and cross-subject testing — on both chest and wrist data to find the optimal model for each use-case.
+                </p>
+                <div class="d-flex gap-3 mt-3" style="font-size:0.78rem;">
+                    <span style="display:flex;align-items:center;gap:5px;">
+                        <span style="width:12px;height:12px;background:var(--sage);border-radius:3px;display:inline-block;"></span>
+                        Traditional ML
+                    </span>
+                    <span style="display:flex;align-items:center;gap:5px;">
+                        <span style="width:12px;height:12px;background:var(--accent);border-radius:3px;display:inline-block;"></span>
+                        Deep Learning
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-lg-7 reveal reveal-delay-1">
+                <div class="model-row">
+                    <div class="model-name">RNN</div>
+                    <span class="model-type">Deep Learning</span>
+                    <div class="model-bar-wrap"><div class="model-bar dl" style="width:93.6%"></div></div>
+                    <div class="model-score">93.6%</div>
+                </div>
+                <div class="model-row">
+                    <div class="model-name">XGBoost</div>
+                    <span class="model-type">Ensemble</span>
+                    <div class="model-bar-wrap"><div class="model-bar" style="width:99.8%"></div></div>
+                    <div class="model-score">99.8%</div>
+                </div>
+                <div class="model-row">
+                    <div class="model-name">Random Forest</div>
+                    <span class="model-type">Ensemble</span>
+                    <div class="model-bar-wrap"><div class="model-bar" style="width:92%"></div></div>
+                    <div class="model-score">~92%</div>
+                </div>
+                <div class="model-row">
+                    <div class="model-name">Extra Trees</div>
+                    <span class="model-type">Ensemble</span>
+                    <div class="model-bar-wrap"><div class="model-bar" style="width:90%"></div></div>
+                    <div class="model-score">~90%</div>
+                </div>
+                <div class="model-row">
+                    <div class="model-name">CNN</div>
+                    <span class="model-type">Deep Learning</span>
+                    <div class="model-bar-wrap"><div class="model-bar dl" style="width:78%"></div></div>
+                    <div class="model-score">~78%</div>
+                </div>
+                <div class="model-row">
+                    <div class="model-name">Gaussian NB</div>
+                    <span class="model-type">Probabilistic</span>
+                    <div class="model-bar-wrap"><div class="model-bar" style="width:39%"></div></div>
+                    <div class="model-score">39.1%</div>
+                </div>
+
+                <p style="font-size:0.72rem;color:var(--mid-grey);margin-top:0.75rem;">
+                    * XGBoost peak in Phase 2 (intra-subject). RNN leads in cross-subject generalisation (Phase 1).
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     AFFECTIVE STATES
+══════════════════════════════════════════════ -->
+<section class="section" style="background:#fff; padding:4rem 0;">
+    <div class="container">
+        <div class="text-center mb-5 reveal">
+            <div class="section-eyebrow">Classification Targets</div>
+            <h2 class="section-title">Four affective states recognised</h2>
+        </div>
+        <div class="row g-3 justify-content-center">
+            <div class="col-6 col-md-3 reveal">
+                <div class="text-center p-3">
+                    <div style="width:64px;height:64px;border-radius:16px;background:var(--sage-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.6rem;">😐</div>
+                    <div style="font-weight:700;font-size:0.9rem;color:var(--charcoal);">Baseline</div>
+                    <div style="font-size:0.78rem;color:var(--mid-grey);margin-top:0.25rem;">Neutral, resting state</div>
+                    <div style="font-size:0.7rem;background:var(--sage-light);color:var(--sage-dark);border-radius:6px;padding:2px 6px;display:inline-block;margin-top:0.5rem;">Label 0</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 reveal reveal-delay-1">
+                <div class="text-center p-3">
+                    <div style="width:64px;height:64px;border-radius:16px;background:#fce8e8;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.6rem;">😰</div>
+                    <div style="font-weight:700;font-size:0.9rem;color:var(--charcoal);">Stress</div>
+                    <div style="font-size:0.78rem;color:var(--mid-grey);margin-top:0.25rem;">Induced cognitive load</div>
+                    <div style="font-size:0.7rem;background:#fce8e8;color:#c0392b;border-radius:6px;padding:2px 6px;display:inline-block;margin-top:0.5rem;">Label 1</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 reveal reveal-delay-2">
+                <div class="text-center p-3">
+                    <div style="width:64px;height:64px;border-radius:16px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.6rem;">😄</div>
+                    <div style="font-weight:700;font-size:0.9rem;color:var(--charcoal);">Amusement</div>
+                    <div style="font-size:0.78rem;color:var(--mid-grey);margin-top:0.25rem;">Positive emotional state</div>
+                    <div style="font-size:0.7rem;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 6px;display:inline-block;margin-top:0.5rem;">Label 2</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 reveal reveal-delay-3">
+                <div class="text-center p-3">
+                    <div style="width:64px;height:64px;border-radius:16px;background:#e8eef8;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.6rem;">🧘</div>
+                    <div style="font-weight:700;font-size:0.9rem;color:var(--charcoal);">Meditation</div>
+                    <div style="font-size:0.78rem;color:var(--mid-grey);margin-top:0.25rem;">Calm, relaxed state</div>
+                    <div style="font-size:0.7rem;background:#e8eef8;color:#3a5fa8;border-radius:6px;padding:2px 6px;display:inline-block;margin-top:0.5rem;">Label 3</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     CTA
+══════════════════════════════════════════════ -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 reveal">
+                <h2 class="cta-title">Ready to understand<br>your <em>stress patterns?</em></h2>
+                <p class="cta-body">
+                    Register today to access the StressWise platform. Connect your wearable, upload sensor data, and let our models do the rest — giving you clarity on your body's real-time stress response.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'UserRegisterForm' %}" class="btn-cta">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </a>
+                    <a href="{% url 'UserLogin' %}" class="btn-cta-ghost">
+                        <i class="bi bi-box-arrow-in-right"></i> User Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-5 offset-lg-1 reveal reveal-delay-2">
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:1.75rem;">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3);margin-bottom:1.25rem;">Platform includes</div>
+                    {% for feature in features %}{% endfor %}
+                    <!-- Static feature list -->
+                    {% for item in "||||"|make_list %}{% endfor %}
+                    <ul class="list-unstyled d-flex flex-column gap-3" style="margin:0;">
+                        <li style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:rgba(255,255,255,0.7);">
+                            <span style="width:24px;height:24px;border-radius:6px;background:var(--sage);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-check2" style="color:white;font-size:0.75rem;"></i></span>
+                            Real-time affective state classification
+                        </li>
+                        <li style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:rgba(255,255,255,0.7);">
+                            <span style="width:24px;height:24px;border-radius:6px;background:var(--sage);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-check2" style="color:white;font-size:0.75rem;"></i></span>
+                            Chest &amp; wrist sensor support
+                        </li>
+                        <li style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:rgba(255,255,255,0.7);">
+                            <span style="width:24px;height:24px;border-radius:6px;background:var(--sage);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-check2" style="color:white;font-size:0.75rem;"></i></span>
+                            10 trained models (ML + Deep Learning)
+                        </li>
+                        <li style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:rgba(255,255,255,0.7);">
+                            <span style="width:24px;height:24px;border-radius:6px;background:var(--sage);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-check2" style="color:white;font-size:0.75rem;"></i></span>
+                            Historical trend analysis
+                        </li>
+                        <li style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:rgba(255,255,255,0.7);">
+                            <span style="width:24px;height:24px;border-radius:6px;background:var(--sage);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-check2" style="color:white;font-size:0.75rem;"></i></span>
+                            Admin oversight dashboard
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // Scroll-triggered reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+
+    reveals.forEach(el => observer.observe(el));
+
+    // Animate model bars on scroll
+    const bars = document.querySelectorAll('.model-bar');
+    const widths = [];
+    bars.forEach(bar => {
+        widths.push(bar.style.width);
+        bar.style.width = '0%';
+    });
+
+    const barSection = document.querySelector('.performance-section');
+    const barObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+            bars.forEach((bar, i) => {
+                setTimeout(() => { bar.style.width = widths[i]; }, i * 80);
+            });
+            barObserver.disconnect();
+        }
+    }, { threshold: 0.3 });
+
+    if (barSection) barObserver.observe(barSection);
+</script>
+{% endblock %}

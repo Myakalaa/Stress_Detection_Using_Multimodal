@@ -1,0 +1,340 @@
+{% extends 'users/Userbase.html' %}
+{% load static %}
+
+{% block title %}Prediction Result — StressWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-wrap { padding: 3rem 0 5rem; }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; color: var(--mid-grey) !important;
+        text-decoration: none; margin-bottom: 2rem;
+    }
+    .back-link:hover { color: var(--charcoal) !important; }
+
+    /* ── Hero result card ── */
+    .result-hero {
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        animation: cardIn 0.55s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(24px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .result-hero::before {
+        content: '';
+        position: absolute;
+        width: 400px; height: 400px; border-radius: 50%;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+
+    /* Per-state theming */
+    .state-Baseline  { background: #f0f7f1; border: 1.5px solid rgba(107,143,113,0.25); }
+    .state-Baseline  .result-hero::before { background: radial-gradient(circle, rgba(107,143,113,0.12) 0%, transparent 70%); }
+    .state-Baseline  .state-emoji-bg { background: var(--sage-light); }
+    .state-Baseline  .result-label { color: var(--sage-dark); }
+    .state-Baseline  .confidence-ring { stroke: var(--sage); }
+
+    .state-Stress    { background: #fdf0f0; border: 1.5px solid rgba(217,79,79,0.25); }
+    .state-Stress    .result-hero::before { background: radial-gradient(circle, rgba(217,79,79,0.1) 0%, transparent 70%); }
+    .state-Stress    .state-emoji-bg { background: #fce8e8; }
+    .state-Stress    .result-label { color: #c0392b; }
+    .state-Stress    .confidence-ring { stroke: #d94f4f; }
+
+    .state-Amusement { background: #fdf6ee; border: 1.5px solid rgba(200,121,65,0.25); }
+    .state-Amusement .result-hero::before { background: radial-gradient(circle, rgba(200,121,65,0.1) 0%, transparent 70%); }
+    .state-Amusement .state-emoji-bg { background: var(--accent-soft); }
+    .state-Amusement .result-label { color: var(--accent); }
+    .state-Amusement .confidence-ring { stroke: var(--accent); }
+
+    .state-Meditation{ background: #eef2fb; border: 1.5px solid rgba(58,95,168,0.2); }
+    .state-Meditation .result-hero::before { background: radial-gradient(circle, rgba(58,95,168,0.08) 0%, transparent 70%); }
+    .state-Meditation .state-emoji-bg { background: #e4ecf8; }
+    .state-Meditation .result-label { color: #3a5fa8; }
+    .state-Meditation .confidence-ring { stroke: #3a5fa8; }
+
+    /* Emoji / icon */
+    .state-emoji-bg {
+        width: 80px; height: 80px; border-radius: 22px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.2rem; margin: 0 auto 1.25rem;
+        position: relative; z-index: 1;
+    }
+
+    .result-tag {
+        font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.14em; text-transform: uppercase;
+        color: var(--mid-grey); margin-bottom: 0.4rem;
+        position: relative; z-index: 1;
+    }
+
+    .result-label {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        letter-spacing: -0.03em; line-height: 1;
+        margin-bottom: 0.5rem;
+        position: relative; z-index: 1;
+    }
+
+    .result-desc {
+        font-size: 0.88rem; color: var(--mid-grey); line-height: 1.65;
+        max-width: 380px; margin: 0 auto;
+        position: relative; z-index: 1;
+    }
+
+    /* Confidence donut */
+    .confidence-wrap {
+        position: relative; z-index: 1;
+        display: flex; align-items: center; justify-content: center;
+        margin: 1.75rem auto 0;
+        width: fit-content;
+    }
+
+    .conf-svg { transform: rotate(-90deg); }
+    .conf-bg   { stroke: rgba(0,0,0,0.07); fill: none; stroke-width: 5; }
+    .confidence-ring {
+        fill: none; stroke-width: 5;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.4s cubic-bezier(0.2,0.8,0.3,1);
+    }
+
+    .conf-label {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    .conf-pct {
+        font-family: var(--font-display);
+        font-size: 1.35rem; line-height: 1;
+        color: var(--charcoal);
+    }
+    .conf-txt { font-size: 0.65rem; color: var(--mid-grey); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── Metric cards row ── */
+    .metric-row { margin-bottom: 1.5rem; }
+
+    .metric-card {
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 16px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+    }
+
+    .metric-card-label {
+        font-size: 0.72rem; font-weight: 600;
+        color: var(--mid-grey); text-transform: uppercase;
+        letter-spacing: 0.07em; margin-bottom: 0.4rem;
+        display: flex; align-items: center; gap: 6px;
+    }
+
+    .metric-card-val {
+        font-family: var(--font-display);
+        font-size: 1.5rem; color: var(--charcoal); line-height: 1;
+    }
+
+    .metric-card-sub { font-size: 0.75rem; color: var(--mid-grey); margin-top: 0.2rem; }
+
+    /* ── Action buttons ── */
+    .action-row {
+        display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn-action-primary {
+        background: var(--sage); color: #fff !important;
+        font-weight: 600; font-size: 0.88rem;
+        padding: 0.65rem 1.5rem; border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+        transition: background 0.2s, transform 0.15s;
+        box-shadow: 0 4px 14px rgba(107,143,113,0.28);
+    }
+    .btn-action-primary:hover { background: var(--sage-dark); transform: translateY(-2px); }
+
+    .btn-action-ghost {
+        background: transparent; color: var(--charcoal) !important;
+        font-weight: 500; font-size: 0.88rem;
+        padding: 0.65rem 1.25rem; border-radius: 10px;
+        text-decoration: none; border: 1.5px solid var(--light-grey);
+        display: inline-flex; align-items: center; gap: 8px;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-action-ghost:hover { border-color: var(--sage); background: var(--sage-light); color: var(--sage-dark) !important; }
+
+    /* ── About state box ── */
+    .state-about {
+        background: #fff; border: 1px solid var(--light-grey);
+        border-radius: 16px; padding: 1.5rem;
+    }
+    .state-about-title {
+        font-weight: 700; font-size: 0.88rem; color: var(--charcoal);
+        margin-bottom: 0.5rem; display: flex; align-items: center; gap: 7px;
+    }
+    .state-about-title i { color: var(--sage); }
+    .state-about-body { font-size: 0.83rem; color: var(--mid-grey); line-height: 1.7; }
+
+    /* ── Mode badge ── */
+    .mode-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.7rem; font-weight: 600;
+        background: var(--cream); border: 1px solid var(--light-grey);
+        border-radius: 100px; padding: 0.25rem 0.75rem;
+        color: var(--mid-grey); margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container result-wrap">
+
+    <a href="{% url 'prediction_home' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Prediction Hub
+    </a>
+
+    <div class="mode-badge">
+        <i class="bi bi-{% if mode == 'CSV Upload' %}filetype-csv{% else %}pencil-square{% endif %}"></i>
+        {{ mode }}{% if filename != 'N/A' %} · {{ filename }}{% endif %}
+    </div>
+
+    <!-- Hero result -->
+    <div class="result-hero state-{{ label }}">
+        <div class="state-emoji-bg">
+            {% if label == 'Baseline' %}😐
+            {% elif label == 'Stress' %}😰
+            {% elif label == 'Amusement' %}😄
+            {% elif label == 'Meditation' %}🧘
+            {% endif %}
+        </div>
+
+        <div class="result-tag">Predicted Affective State</div>
+        <div class="result-label">{{ label }}</div>
+        <p class="result-desc">
+            {% if label == 'Baseline' %}Your physiological signals indicate a neutral, resting baseline state with no signs of stress or emotional arousal.
+            {% elif label == 'Stress' %}Elevated physiological arousal detected. Your biosignals are consistent with a stress response.
+            {% elif label == 'Amusement' %}Your signals reflect a positive emotional state associated with amusement or mild engagement.
+            {% elif label == 'Meditation' %}Your physiological markers suggest a calm, deeply relaxed meditative state.
+            {% endif %}
+        </p>
+
+        <!-- Confidence donut -->
+        <div class="confidence-wrap">
+            <svg class="conf-svg" width="110" height="110" viewBox="0 0 110 110">
+                <circle class="conf-bg" cx="55" cy="55" r="46"/>
+                <circle class="confidence-ring" cx="55" cy="55" r="46"
+                        stroke-dasharray="289"
+                        stroke-dashoffset="289"
+                        id="confRing"/>
+            </svg>
+            <div class="conf-label">
+                <div class="conf-pct" id="confPct">0%</div>
+                <div class="conf-txt">Confidence</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="row g-3 metric-row">
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-card-label"><i class="bi bi-tags"></i> Final State</div>
+                <div class="metric-card-val">{{ label }}</div>
+                <div class="metric-card-sub">Classified output</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-card-label"><i class="bi bi-percent"></i> Confidence</div>
+                <div class="metric-card-val">{{ confidence }}</div>
+                <div class="metric-card-sub">Stage confidence score</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-card-label"><i class="bi bi-activity"></i> Stress Prob.</div>
+                <div class="metric-card-val">{{ p_stress }}</div>
+                <div class="metric-card-sub">Stage-A output</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-card-label"><i class="bi bi-sliders"></i> Threshold</div>
+                <div class="metric-card-val">{{ threshold }}</div>
+                <div class="metric-card-sub">Stage-A cutoff used</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- State description -->
+    <div class="state-about mb-4">
+        <div class="state-about-title">
+            <i class="bi bi-book"></i> About — {{ label }}
+        </div>
+        <div class="state-about-body">
+            {% if label == 'Baseline' %}
+            The <strong>Baseline</strong> state (Label 0) represents a neutral resting condition with no external stressors applied. Physiological signals exhibit low variability, stable skin conductance, and regular heart rhythm. This is the reference state used to calibrate stress markers.
+            {% elif label == 'Stress' %}
+            The <strong>Stress</strong> state (Label 1) is characterised by elevated electrodermal activity, increased heart rate, reduced heart rate variability, and altered respiration patterns. These are typical autonomic nervous system responses to cognitive or emotional stressors.
+            {% elif label == 'Amusement' %}
+            The <strong>Amusement</strong> state (Label 2) reflects a positive affective state. It shows moderate physiological arousal — slightly elevated BVP and EDA — but without the prolonged tension characteristic of stress. Associated with engagement, positive emotion and mild excitement.
+            {% elif label == 'Meditation' %}
+            The <strong>Meditation</strong> state (Label 3) is a deeply calm, regulated state. It presents low EDA, slow regular respiration, reduced heart rate, and high HRV — indicating strong parasympathetic dominance and a quiet, focused mind.
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="action-row">
+        <a href="{% url 'prediction_home' %}" class="btn-action-primary">
+            <i class="bi bi-arrow-repeat"></i> Run Another Prediction
+        </a>
+        <a href="{% url 'stress_prediction_csv' %}" class="btn-action-ghost">
+            <i class="bi bi-filetype-csv"></i> New CSV Upload
+        </a>
+        <a href="{% url 'stress_prediction_manual' %}" class="btn-action-ghost">
+            <i class="bi bi-pencil-square"></i> New Manual Input
+        </a>
+        <a href="{% url 'Userbase' %}" class="btn-action-ghost">
+            <i class="bi bi-house"></i> Dashboard
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animate confidence ring + counter
+    const rawConf = "{{ confidence }}".replace('%','').trim();
+    const pct = parseFloat(rawConf) || 0;
+    const circumference = 2 * Math.PI * 46; // 289
+
+    const ring = document.getElementById('confRing');
+    const pctEl = document.getElementById('confPct');
+
+    // Slight delay so animation is visible
+    setTimeout(() => {
+        const offset = circumference - (pct / 100) * circumference;
+        ring.style.strokeDashoffset = offset;
+
+        // Count-up
+        let current = 0;
+        const step = pct / 60;
+        const interval = setInterval(() => {
+            current = Math.min(current + step, pct);
+            pctEl.textContent = current.toFixed(1) + '%';
+            if (current >= pct) clearInterval(interval);
+        }, 16);
+    }, 200);
+</script>
+{% endblock %}

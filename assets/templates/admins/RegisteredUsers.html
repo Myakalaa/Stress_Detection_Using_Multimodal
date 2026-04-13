@@ -1,0 +1,433 @@
+{% extends 'admins/adminbase.html' %}
+{% load static %}
+
+{% block title %}Registered Users — StressWise Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-wrap { padding: 2.5rem 0 5rem; }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.82rem; color: var(--mid-grey) !important;
+        text-decoration: none; margin-bottom: 2rem;
+    }
+    .back-link:hover { color: var(--charcoal) !important; }
+
+    /* ── Page header ── */
+    .page-header {
+        display: flex; align-items: flex-end;
+        justify-content: space-between; flex-wrap: wrap;
+        gap: 1rem; margin-bottom: 1.75rem;
+    }
+
+    .page-eyebrow {
+        font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--accent); margin-bottom: 0.3rem;
+    }
+
+    .page-title {
+        font-family: var(--font-display);
+        font-size: 1.9rem; color: var(--charcoal);
+        letter-spacing: -0.02em; margin: 0;
+    }
+
+    .page-sub { font-size: 0.83rem; color: var(--mid-grey); margin-top: 0.2rem; }
+
+    /* ── Messages ── */
+    .msg-box {
+        border-radius: 11px; padding: 0.8rem 1.1rem;
+        font-size: 0.83rem; margin-bottom: 1.25rem;
+        display: flex; align-items: flex-start; gap: 9px; border: 1px solid;
+    }
+    .msg-box.ok   { background:#f0f7f1; border-color:rgba(107,143,113,0.28); color:var(--sage-dark); }
+    .msg-box.warn { background:#fdf0f0; border-color:rgba(217,79,79,0.22); color:#c0392b; }
+    .msg-box i { flex-shrink:0; margin-top:1px; }
+
+    /* ── Filter / search bar ── */
+    .filter-bar {
+        background: #fff; border: 1px solid var(--light-grey);
+        border-radius: 14px; padding: 0.85rem 1.25rem;
+        margin-bottom: 1.1rem;
+        display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--mid-grey); white-space: nowrap;
+    }
+
+    .fbtn {
+        font-size: 0.75rem; font-weight: 600;
+        padding: 0.35rem 0.85rem; border-radius: 8px;
+        border: 1.5px solid var(--light-grey);
+        background: transparent; color: var(--mid-grey);
+        cursor: pointer; transition: all 0.18s;
+    }
+    .fbtn:hover { border-color: var(--sage); color: var(--sage-dark); background: var(--sage-light); }
+    .fbtn.active { border-color: var(--sage); color: var(--sage-dark); background: var(--sage-light); }
+    .fbtn.active.a-warn { border-color:#c8a030; color:#7a6010; background:#fff8e8; }
+
+    .search-wrap {
+        margin-left: auto; position: relative;
+    }
+    .search-wrap i {
+        position: absolute; left: 0.75rem; top: 50%;
+        transform: translateY(-50%); color: var(--mid-grey); font-size: 0.82rem;
+        pointer-events: none;
+    }
+    .search-wrap input {
+        border: 1.5px solid var(--light-grey); border-radius: 9px;
+        padding: 0.4rem 0.85rem 0.4rem 2rem;
+        font-family: var(--font-body); font-size: 0.82rem;
+        color: var(--charcoal); background: var(--cream);
+        outline: none; width: 200px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-wrap input:focus {
+        border-color: var(--sage);
+        box-shadow: 0 0 0 3px rgba(107,143,113,0.1);
+        background: #fff;
+    }
+
+    /* ── Table card ── */
+    .table-card {
+        background: #fff; border: 1px solid var(--light-grey);
+        border-radius: 18px; overflow: hidden;
+    }
+
+    .tbl { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+
+    .tbl thead th {
+        font-size: 0.65rem; font-weight: 700;
+        letter-spacing: 0.09em; text-transform: uppercase;
+        color: var(--mid-grey); padding: 0.8rem 1.25rem;
+        background: var(--cream); border-bottom: 1px solid var(--light-grey);
+        text-align: left; white-space: nowrap;
+    }
+
+    .tbl tbody tr {
+        border-bottom: 1px solid var(--light-grey);
+        transition: background 0.15s;
+    }
+    .tbl tbody tr:last-child { border-bottom: none; }
+    .tbl tbody tr:hover { background: #fafaf8; }
+    .tbl tbody td { padding: 0.9rem 1.25rem; color: var(--charcoal); vertical-align: middle; }
+
+    /* User name cell */
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .user-avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: var(--sage-light); color: var(--sage-dark);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+    }
+    .user-name  { font-weight: 600; font-size: 0.87rem; color: var(--charcoal); line-height: 1.2; }
+    .user-email { font-size: 0.71rem; color: var(--mid-grey); }
+
+    /* Status pill — status values: 'waiting', 'activated' */
+    .status-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.67rem; font-weight: 700; letter-spacing: 0.05em;
+        text-transform: uppercase; padding: 0.22rem 0.75rem;
+        border-radius: 100px; white-space: nowrap;
+    }
+    .status-pill.waiting   { background:#fff8e8; color:#7a6010; border:1px solid rgba(200,160,48,0.3); }
+    .status-pill.activated { background:#f0f7f1; color:var(--sage-dark); border:1px solid rgba(107,143,113,0.3); }
+
+    /* Action buttons */
+    .act-btn {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.72rem; font-weight: 600;
+        padding: 0.32rem 0.75rem; border-radius: 7px;
+        text-decoration: none; border: 1px solid transparent;
+        cursor: pointer; transition: all 0.18s; white-space: nowrap;
+        margin-right: 4px;
+    }
+    .act-btn:hover { transform: translateY(-1px); }
+
+    .act-activate {
+        background: var(--sage-light); color: var(--sage-dark);
+        border-color: rgba(107,143,113,0.2);
+    }
+    .act-activate:hover { background: var(--sage); color: #fff; border-color: var(--sage); }
+
+    .act-delete {
+        background: #fdf0f0; color: #c0392b;
+        border-color: rgba(217,79,79,0.2);
+    }
+    .act-delete:hover { background: #d94f4f; color: #fff; border-color: #d94f4f; }
+
+    /* Already active label */
+    .act-done {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.72rem; font-weight: 600; color: var(--sage-dark);
+        padding: 0.32rem 0.6rem; margin-right: 4px;
+    }
+
+    /* Empty state */
+    .empty-cell { text-align: center; padding: 3rem !important; }
+    .empty-icon {
+        width: 56px; height: 56px; border-radius: 14px;
+        background: var(--cream); color: var(--mid-grey);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; margin: 0 auto 0.85rem;
+    }
+    .empty-title { font-weight: 700; font-size: 0.9rem; color: var(--charcoal); margin-bottom: 0.2rem; }
+    .empty-sub   { font-size: 0.8rem; color: var(--mid-grey); }
+
+    /* Row count footer */
+    .table-footer {
+        padding: 0.85rem 1.25rem;
+        border-top: 1px solid var(--light-grey);
+        font-size: 0.76rem; color: var(--mid-grey);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* Delete confirm modal */
+    .modal-overlay {
+        display: none; position: fixed; inset: 0; z-index: 2000;
+        background: rgba(44,44,44,0.45);
+        align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+        background: #fff; border-radius: 18px;
+        padding: 2rem; max-width: 380px; width: 90%;
+        box-shadow: 0 20px 60px rgba(44,44,44,0.15);
+        text-align: center; animation: cardIn 0.3s ease both;
+    }
+    @keyframes cardIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    .modal-icon {
+        width: 56px; height: 56px; border-radius: 14px;
+        background: #fdf0f0; color: #d94f4f;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; margin: 0 auto 1rem;
+    }
+    .modal-title { font-family:var(--font-display); font-size:1.25rem; color:var(--charcoal); margin-bottom:.5rem; }
+    .modal-body  { font-size:.84rem; color:var(--mid-grey); line-height:1.65; margin-bottom:1.5rem; }
+    .modal-actions { display:flex; gap:.65rem; justify-content:center; }
+    .modal-cancel {
+        padding:.6rem 1.25rem; border-radius:9px;
+        border:1.5px solid var(--light-grey); background:transparent;
+        font-size:.85rem; font-weight:600; color:var(--charcoal);
+        cursor:pointer; transition:border-color .2s;
+    }
+    .modal-cancel:hover { border-color:var(--sage); }
+    .modal-confirm {
+        padding:.6rem 1.25rem; border-radius:9px;
+        background:#d94f4f; border:none; color:#fff;
+        font-size:.85rem; font-weight:700; cursor:pointer;
+        transition:background .2s; text-decoration:none;
+        display:inline-flex; align-items:center; gap:6px;
+    }
+    .modal-confirm:hover { background:#b83030; color:#fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container admin-wrap">
+
+    <a href="{% url 'AdminHome' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Admin Panel</div>
+            <h1 class="page-title">Registered Users</h1>
+            <p class="page-sub">{{ data|length }} user{{ data|length|pluralize }} registered on the platform</p>
+        </div>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="msg-box {% if message.tags == 'success' %}ok{% else %}warn{% endif %}">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %}"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+        <span class="filter-label">Filter:</span>
+        <button class="fbtn active" onclick="filterRows('all', this)">All</button>
+        <button class="fbtn" onclick="filterRows('waiting', this)">Waiting</button>
+        <button class="fbtn" onclick="filterRows('activated', this)">Activated</button>
+
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by name…" oninput="searchRows(this.value)">
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Login ID</th>
+                        <th>Mobile</th>
+                        <th>Locality</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    {% for user in data %}
+                    <tr data-status="{{ user.status }}" data-name="{{ user.Username|lower }}">
+
+                        <td style="color:var(--mid-grey);font-size:0.74rem;">{{ forloop.counter }}</td>
+
+                        <!-- Name + email -->
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar">{{ user.Username|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="user-name">{{ user.Username }}</div>
+                                    <div class="user-email">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <code style="font-size:0.78rem;background:var(--cream);padding:2px 7px;border-radius:5px;">
+                                {{ user.loginid }}
+                            </code>
+                        </td>
+
+                        <td>{{ user.mobile }}</td>
+                        <td>{{ user.locality }}</td>
+                        <td>{{ user.city }}</td>
+                        <td>{{ user.state }}</td>
+
+                        <!-- Status -->
+                        <td>
+                            <span class="status-pill {{ user.status }}">
+                                <i class="bi bi-{% if user.status == 'activated' %}check-circle-fill{% else %}clock-fill{% endif %}"></i>
+                                {{ user.status|title }}
+                            </span>
+                        </td>
+
+                        <!-- Actions: AdminActivaUsers?uid= and DeleteUsers?uid= -->
+                        <td>
+                            {% if user.status != 'activated' %}
+                            <a href="{% url 'AdminActivaUsers' %}?uid={{ user.id }}"
+                               class="act-btn act-activate"
+                               title="Activate this user">
+                                <i class="bi bi-person-check"></i> Activate
+                            </a>
+                            {% else %}
+                            <span class="act-done">
+                                <i class="bi bi-check2-circle"></i> Active
+                            </span>
+                            {% endif %}
+
+                            <button class="act-btn act-delete"
+                                    onclick="confirmDelete('{{ user.id }}', '{{ user.Username }}')"
+                                    title="Delete this user">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="empty-cell">
+                            <div class="empty-icon"><i class="bi bi-people"></i></div>
+                            <div class="empty-title">No users registered</div>
+                            <div class="empty-sub">No accounts have been created yet.</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer count -->
+        {% if data %}
+        <div class="table-footer">
+            <span id="rowCount">Showing {{ data|length }} user{{ data|length|pluralize }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- ── Delete confirmation modal ── -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <div class="modal-icon"><i class="bi bi-trash-fill"></i></div>
+        <div class="modal-title">Delete User?</div>
+        <p class="modal-body" id="modalMsg">
+            This will permanently remove the user from the system. This action cannot be undone.
+        </p>
+        <div class="modal-actions">
+            <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            <a href="#" id="modalConfirmBtn" class="modal-confirm">
+                <i class="bi bi-trash"></i> Yes, Delete
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ── Filter ── */
+    let currentFilter = 'all';
+
+    function filterRows(status, btn) {
+        currentFilter = status;
+        document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+
+    function searchRows(q) { applyFilters(q.toLowerCase()); }
+
+    function applyFilters(q) {
+        const query = q ?? document.getElementById('searchInput').value.toLowerCase();
+        let visible = 0;
+        document.querySelectorAll('#userTableBody tr[data-status]').forEach(row => {
+            const statusOk = currentFilter === 'all' || row.dataset.status === currentFilter;
+            const nameOk   = row.dataset.name.includes(query);
+            const show = statusOk && nameOk;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        const counter = document.getElementById('rowCount');
+        if (counter) counter.textContent = `Showing ${visible} user${visible !== 1 ? 's' : ''}`;
+    }
+
+    /* ── Delete modal ── */
+    function confirmDelete(uid, name) {
+        document.getElementById('modalMsg').textContent =
+            `This will permanently remove "${name}" from the system. This action cannot be undone.`;
+        document.getElementById('modalConfirmBtn').href = "{% url 'DeleteUsers' %}?uid=" + uid;
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+    }
+
+    // Close on backdrop click
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+{% endblock %}
